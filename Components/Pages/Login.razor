@@ -1,0 +1,97 @@
+﻿@page "/login"
+@using clientside_ticketmanutenzione.Dtos;
+
+@* @using System.Text.Json *@
+@using System.Net.Http.Json
+@inject IHttpClientFactory HttpClientFactory
+
+<h3>Login</h3>
+@* <form>
+    <label for="email">E-Mail</label>
+    <input type="email" name="email"/>
+    <label for="password">Password</label>
+    <input type="password" name="password" />
+
+    <button type="submit">Accedi</button>
+</form> *@
+@if (successMessage is null)
+{
+<EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+    <DataAnnotationsValidator/>
+    <ValidationSummary/>
+
+    <label for="email">E-Mail</label>
+    <InputText id="email" @bind-Value="loginModel.Email" />
+    <ValidationMessage For="@(()=>loginModel.Email)" />
+
+    <label for="password">Password</label>
+    <InputText id="password" typeof="password" @bind-Value="loginModel.Password"/>
+    <ValidationMessage For="@(()=>loginModel.Password)"/>
+
+    @if (errorMessage is not null)
+    {
+        <p role="alert">@errorMessage</p>
+    }
+    
+    <button type="submit">Accedi</button>
+</EditForm>
+}
+<div>
+@if (successMessage is not null)
+{
+    <p role="alert">@successMessage</p>
+    <p>@risposta</p>
+}
+</div>
+
+@code {
+    private LoginDto loginModel = new();
+
+    private string? errorMessage;
+    private string? successMessage;
+    private string? risposta;
+
+    private async Task HandleLogin()
+    {
+        errorMessage = null;
+
+        try
+        {
+            var client = HttpClientFactory.CreateClient("api_test1");
+
+            using var response = await client.PostAsJsonAsync(
+                "api/auth/login",
+                loginModel);
+
+            if (response.IsSuccessStatusCode)
+            {
+                    successMessage = $"Accesso riuscito, codice risposta http: {(int)response.StatusCode}";
+                    // using var json = await response.Content.ReadFromJsonAsync<JsonDocument>(); // il codice successivo se usassi questo pattern di accesso al json rientrerebbe nella categoria "Schifu da tierra", utilizzare dto
+                    var result = await response.Content
+                        .ReadFromJsonAsync<LoginResponseDto>();
+
+                    if (result is not null)
+                    {
+                        var accessToken = result.AccessToken;
+                        var refreshToken = result.RefreshToken;
+                        var messaggio = result.Message;
+
+                        var nome = result.Utenza.Nome;
+                        var cognome = result.Utenza.Cognome;
+                        var email = result.Utenza.Email;
+                        var idRuolo = result.Utenza.IdRuolo;
+
+                        risposta = $"Accesso di {nome} {cognome} riuscito";
+                    }
+            }
+            else
+            {
+                errorMessage = $"Accesso non riuscito. Codice HTTP: {(int)response.StatusCode}";
+            }
+        }
+        catch (HttpRequestException)
+        {
+            errorMessage = "Impossibile contattare il server.";
+        }
+    }
+}
