@@ -19,5 +19,5 @@ public class UtenzaDto
     public string Nome { get; set; } = string.Empty;
     public string CodiceFiscale { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
-    public object? Ruolo { get; set; }
+    public string? Ruolo { get; set; }
 }
