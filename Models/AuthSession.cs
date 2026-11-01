@@ -1,7 +1,7 @@
 ﻿namespace clientside_ticketmanutenzione.Models;
 
 public sealed class AuthSession
-{   
+{
     //dati dei token
     public required string AccessToken { get; set; }
     public required string TokenType { get; set; }
