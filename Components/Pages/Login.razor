@@ -1,4 +1,5 @@
 ﻿@page "/login"
+
 @using clientside_ticketmanutenzione.Dtos;
 
 @inject IHttpClientFactory HttpClientFactory
@@ -6,14 +7,7 @@
 @inject NavigationManager Navigation
 
 <h3>Login</h3>
-@* <form>
-    <label for="email">E-Mail</label>
-    <input type="email" name="email"/>
-    <label for="password">Password</label>
-    <input type="password" name="password" />
 
-    <button type="submit">Accedi</button>
-</form> *@
 @if (successMessage is null)
 {
 <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
@@ -89,11 +83,12 @@
             // }
             var result = await JS.InvokeAsync<LoginResult>(
             "authLogin",
-            loginModel);
+            loginModel
+            );
 
             if (result.Success)
             {
-                Navigation.NavigateTo("/dashboard", forceLoad: true);
+                Navigation.NavigateTo("/", forceLoad: true);
                 return;
             }
 
@@ -101,8 +96,8 @@
         }
             catch (JSException ex)
             {
-            
                 errorMessage = "Impossibile contattare il server.";
+
             }
         }
     private sealed class LoginResult

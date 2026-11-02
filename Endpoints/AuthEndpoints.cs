@@ -25,10 +25,10 @@ public static class AuthEndpoints
             AuthSessionManager sessionManager,
             HttpContext context) =>
         {
-            var client = httpClientFactory.CreateClient("api_test1");
+            var client = httpClientFactory.CreateClient("apiLogin");
 
-            var response = await client.PostAsJsonAsync("/api/auth/login", request);
-            Log.Debug($"response?.Content.ToString()");
+            var response = await client.PostAsJsonAsync("auth/login", request);
+
             if (response.IsSuccessStatusCode)
             {
                 var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponseDto>();
@@ -99,17 +99,38 @@ public static class AuthEndpoints
 
         group.MapPost("/logout", async (
             HttpContext context,
+            IHttpClientFactory httpClientFactory,
             AuthSessionManager sessionManager) =>
             {
                 var sessionId = context.User.FindFirst("sid")?.Value;
+
                 if (!string.IsNullOrWhiteSpace(sessionId))
                 {
-                    sessionManager.RemoveSession(sessionId);
+                    var session = sessionManager.GetSession(sessionId);
+                    if (session is not null)
+                    {
+                        try
+                        {
+                            var refreshToken = session.RefreshToken;
+                            var client = httpClientFactory.CreateClient("apiLogin");
+                            var response = await client.PostAsJsonAsync("auth/logout", new {RefreshToken = session.RefreshToken});
+                        }
+                        catch (HttpRequestException ex)
+                        {
+                            Log.Debug("Message: {aaa} \n Inner: {bbb}",ex.Message,ex.InnerException);
+                        }
+                        finally 
+                        {
+                            sessionManager.RemoveSession(sessionId); 
+                        }
+                    }
                 }
                 await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-                return Results.Ok(new {
+                return Results.Ok(new 
+                {
                     authenticated = false,
-                    message = "Logout effettuato correttamente."});
+                    message = "Logout effettuato correttamente."
+                });                
             })
             .RequireAuthorization();
 

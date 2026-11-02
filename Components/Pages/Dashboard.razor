@@ -1,0 +1,41 @@
+﻿@page "/"
+
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize]
+
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+<h3>Dashboard</h3>
+<button @onclick="HandleLogout">Disconnetti</button>
+
+@code {
+    
+
+    private async Task HandleLogout()
+    {
+        try
+        {
+            var result = await JS.InvokeAsync<LogoutResult>("authLogout");
+            if (result.Success)
+            {
+                Navigation.NavigateTo("/", forceLoad: true);
+                return;
+            }
+        }
+        catch
+        {
+
+        }
+        finally
+        {
+
+        }
+    }
+    private sealed class LogoutResult
+    {
+        public bool Success { get; set; }
+        public int Status { get; set; }
+        public string Message { get; set; } = string.Empty;
+    }
+}

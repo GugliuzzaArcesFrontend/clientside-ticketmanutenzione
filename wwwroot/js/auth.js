@@ -16,3 +16,21 @@
         message: data?.message ?? ""
     };
 };
+
+window.authLogout = async () => {
+    const response = await fetch("/auth/logout", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+            "Accept": "application/json"
+        }
+    });
+
+    const data = await response.json().catch(() => null);
+
+    return {
+        success: response.ok,
+        status: response.status,
+        message: data?.message ?? ""
+    }    
+}

@@ -1,5 +1,6 @@
 using clientside_ticketmanutenzione.Components;
 using clientside_ticketmanutenzione.Endpoints;
+using clientside_ticketmanutenzione.Handlers;
 using clientside_ticketmanutenzione.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -23,12 +24,19 @@ try
         .AddInteractiveServerComponents();
     builder.Services.AddMemoryCache();
 
-    builder.Services.AddHttpClient("api_test1", client =>
+    builder.Services.AddTransient<AuthTokenHandler>();
+    builder.Services.AddHttpClient("apiLogin", client =>
     {
-        client.BaseAddress = new Uri(
-            builder.Configuration["ApiBaseUrl"]!); //impostazione dell'origine api, presa da appsettings
-        client.Timeout = TimeSpan.FromSeconds(30); //settaggio del request timeout 408/504
+        client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"]!);
     });
+    builder.Services
+        .AddHttpClient("api_test1", client =>
+        {
+            client.BaseAddress = new Uri(
+                builder.Configuration["ApiBaseUrl"]!); //impostazione dell'origine api, presa da appsettings
+            client.Timeout = TimeSpan.FromSeconds(30); //settaggio del request timeout 408/504
+        })
+        .AddHttpMessageHandler<AuthTokenHandler>();
 
     builder.Services
         .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -78,6 +86,7 @@ try
         });
 
     builder.Services.AddAuthorization();
+    builder.Services.AddAuthorizationCore();
     builder.Services.AddCascadingAuthenticationState();
 
     //spazio per i servizi singleton
@@ -110,9 +119,9 @@ try
 }
 catch (Exception ex)
 {
-
+    Log.Fatal("Errore critico: {message} \n {inner}",ex.Message, ex.InnerException);
 }
 finally
 {
-
+    await Log.CloseAndFlushAsync();
 }

@@ -9,8 +9,6 @@ using clientside_ticketmanutenzione.Models;
 
 public sealed class AuthSessionManager(IMemoryCache _cache)
 {
-    
-
     public string CreateSession(AuthSession session)
     ///<summary>Crea una nuova sessione in memory partendo 
     ///da un oggetto AuthSession</summary>
