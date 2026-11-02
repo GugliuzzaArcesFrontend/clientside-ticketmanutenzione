@@ -27,7 +27,7 @@ window.authLogout = async () => {
     });
 
     const data = await response.json().catch(() => null);
-
+    console.log(data)
     return {
         success: response.ok,
         status: response.status,

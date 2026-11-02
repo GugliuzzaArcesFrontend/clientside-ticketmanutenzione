@@ -47,6 +47,7 @@ try
             options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
             options.Cookie.SameSite = SameSiteMode.Lax;
             options.Cookie.Path = "/";
+            options.Cookie.MaxAge = TimeSpan.FromHours(8);
 
             options.ExpireTimeSpan = TimeSpan.FromHours(8);
             options.SlidingExpiration = false;
@@ -95,6 +96,9 @@ try
 
     //spazio per i servizi scoped
 
+    builder.Services.AddScoped<AuthService>();
+
+    //build
     var app = builder.Build();
 
     // Configure the HTTP request pipeline.

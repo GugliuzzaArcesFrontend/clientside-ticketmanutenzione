@@ -113,7 +113,7 @@ public static class AuthEndpoints
                         {
                             var refreshToken = session.RefreshToken;
                             var client = httpClientFactory.CreateClient("apiLogin");
-                            var response = await client.PostAsJsonAsync("auth/logout", new {RefreshToken = session.RefreshToken});
+                            var response = await client.PostAsJsonAsync("auth/logout", new { session.RefreshToken});
                         }
                         catch (HttpRequestException ex)
                         {
