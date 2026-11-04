@@ -24,7 +24,7 @@ public class AuthService(IJSRuntime _js)
         try
         {
             var result = await _js.InvokeAsync<LoginResult>("authLogin", dto);
-            if (result!.Success)
+            if (result is not null && result.Success)
             {
                 return result;
             }
@@ -34,10 +34,6 @@ public class AuthService(IJSRuntime _js)
         {
             Log.Debug("{1}", ex.Message);
             return null;
-        }
-        finally 
-        {
-            
         }
     }
     public async Task<LogoutResult?> HandleLogout()
@@ -53,12 +49,8 @@ public class AuthService(IJSRuntime _js)
         }
         catch (JSException ex)
         {
-            Log.Debug("Fallito il logout");
+            Log.Debug("Fallito il logout, {aaa}",ex.Message);
             return null;
-        }
-        finally 
-        {
-        
         }
     }
 }

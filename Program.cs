@@ -97,6 +97,7 @@ try
     //spazio per i servizi scoped
 
     builder.Services.AddScoped<AuthService>();
+    builder.Services.AddScoped<AuthenticatedHttpService>();
 
     //build
     var app = builder.Build();

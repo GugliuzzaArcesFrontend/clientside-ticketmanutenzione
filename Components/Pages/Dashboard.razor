@@ -1,34 +1,84 @@
 ﻿@page "/"
+@rendermode InteractiveServer
 
 @attribute [Authorize]
+
 @inject AuthService Auth
+@inject AuthenticatedHttpService AuthedHttp
+@inject AuthSessionManager AuthManager
 @inject NavigationManager Navigation 
+@inject IHttpClientFactory HttpClientFactory
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
 <h3>Dashboard</h3>
-@if (successMessage is null)
+@if (isLoading)
 {
-<button @onclick="HandleLogout">Disconnetti</button>
+    <p>Caricamento dati...</p>
+}
+else if (errorMessage is not null)
+{
+    <p>@errorMessage</p>
+    <p>
+        <button @onclick="HandleLogout">
+            Tornare al login 
+        </button>
+
+    </p>
 }
 else
 {
-    <p>@successMessage</p>
+    @if (utenza is not null)
+    {
+        <p>Benvenuto/a @utenza.Nome @utenza.Cognome</p>
+    }
+    @if (logoutMessage is null)
+    {
+        <button @onclick="HandleLogout">Disconnetti</button>
+    }
+    else
+    {
+        <p>@logoutMessage</p>
+    }
+    
+    @if (segnalazioni is not null)
+    {
+        <label for="attive">Mostra solo segnalazioni con lavori in corso</label>
+        <input type="checkbox" name="attive" id="attive"
+               @bind="attive"
+               @bind:after="CaricaSegnalazioni" />
+        <TabellaSegnalazioni Segnalazioni="segnalazioni"/>
+        @* @foreach (SegnalazioniOperatoreDto segnalazione in segnalazioni)
+        {
+            <p>@segnalazione.Id</p>
+            <p>@segnalazione.DataSegnalazione</p>
+            <p>@segnalazione.AzioniAttive</p>
+        } *@
+    }
+    else
+    {
+        <p>Caricamento in corso...</p>
+    }
 }
-
 @code {
+    private UtenzaDto? utenza;
+    private SegnalazioniOperatoreDto[]? segnalazioni;
 
     private string? errorMessage;
-    private string? successMessage;
+    private string? logoutMessage;
+    private bool attive = false;
+    private bool aperte = false;
+    private bool isLoading = true;
 
     private async Task HandleLogout()
     {
-
         try
         {
             var result = await Auth.HandleLogout();
             if (result is not null && result.Success)
             {
-                successMessage = "Disconnessione in corso";
+                logoutMessage = "Disconnessione in corso";
                 StateHasChanged();
-                await Task.Delay(5000);
+                await Task.Delay(2000);
 
                 Navigation.NavigateTo("/login");
             }
@@ -39,7 +89,73 @@ else
         }
         finally
         {
-            
+
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CaricaSegnalazioni();
+    }
+    private async Task CaricaSegnalazioni()
+
+    {
+        try
+        {
+
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+            var user = authState.User;
+
+            var sessionId = user.FindFirst("sid")?.Value;
+
+            var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var uri = $"utenze/{userId}";
+            if (string.IsNullOrWhiteSpace(userId))
+                throw new UnauthorizedAccessException("UserId non presente nei claims.");
+
+            var client = HttpClientFactory.CreateClient("api_test1");
+
+            using var utenzaResponse = await AuthedHttp.SendAsync(
+                client,
+                HttpMethod.Get,
+                uri
+            );
+            Log.Debug("Utenza HTTP Status: {StatusCode}", utenzaResponse.StatusCode);
+            utenzaResponse.EnsureSuccessStatusCode();
+
+            utenza = await utenzaResponse.Content.ReadFromJsonAsync<UtenzaDto>();
+            var uriSegnalazioni = uri+"/segnalazioni"+(aperte||attive?"?":"")+(aperte?"aperte=true":"")+(aperte&&attive?"&&":"")+(attive?"attive=true":"");
+            Log.Debug("uri: {uri}",uriSegnalazioni);
+            using var segnalazioniResponse = await AuthedHttp.SendAsync(
+                client,
+                HttpMethod.Get,
+                uriSegnalazioni
+            );
+            Log.Debug("Segnalazioni HTTP Status: {StatusCode}", segnalazioniResponse.StatusCode);
+            segnalazioniResponse.EnsureSuccessStatusCode();
+
+            segnalazioni = await segnalazioniResponse.Content
+                .ReadFromJsonAsync<SegnalazioniOperatoreDto[]>() ?? [];
+            Log.Debug("@{segnalazioni}",segnalazioni);
+            isLoading = false;
+            StateHasChanged();
+        }
+        catch (HttpRequestException ex)
+        {
+            errorMessage = $"Errore durante il recupero dei dati: {ex.Message}";
+        }
+        catch (UnauthorizedAccessException)
+        {
+            errorMessage = "Accesso alla risorsanon au";
+        }
+        catch (Exception ex)
+        {
+            Log.Debug("{message}",ex.Message);
+        }
+        finally
+        {
+            isLoading = false;
         }
     }
 }

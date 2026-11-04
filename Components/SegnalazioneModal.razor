@@ -1,0 +1,59 @@
+﻿@inject AuthenticatedHttpService AuthedHttp
+@inject AuthenticationStateProvider AuthenticationState
+@if (segnalazione is not null)
+{
+    <dialog open >
+        <p>@segnalazione.Id</p>
+        <p>@segnalazione.Luogo</p>
+        <p>@segnalazione.DataSegnalazione</p>
+        <p>@segnalazione.Descrizione</p>
+        @* creare un dto per servire la segnalazione in dettaglio e creare qui in template i for di azioni e allegati corrispondenti *@
+
+        <button @onclick="Chiudi">Chiudi</button>
+    </dialog>
+}
+
+
+@code {
+    [Parameter]
+    public int IdSegnalazione { get; set; }
+    [Parameter]
+    public EventCallback OnChiudi { get; set; }
+
+    private SegnalazioniOperatoreDto? segnalazione;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (IdSegnalazione!=0)
+        {            
+            var authState = await AuthenticationState.GetAuthenticationStateAsync();
+
+            var user = authState.User;
+
+            var sessionId = user.FindFirst("sid")?.Value;
+
+            var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrWhiteSpace(userId))
+                throw new UnauthorizedAccessException("UserId non presente nei claims.");
+
+            using var segnalazioneResponse = await AuthedHttp.SendAsync(
+                HttpMethod.Get,
+                $"utenze/{userId}/segnalazioni/{IdSegnalazione}"
+            );
+            segnalazioneResponse.EnsureSuccessStatusCode();
+            segnalazione = await segnalazioneResponse.Content.ReadFromJsonAsync<SegnalazioniOperatoreDto>();
+        }
+        else
+        {
+            segnalazione = null;
+        }
+    }
+    private async Task Chiudi()
+    {
+        if (OnChiudi.HasDelegate)
+        {
+            await OnChiudi.InvokeAsync();
+        }
+    }
+}

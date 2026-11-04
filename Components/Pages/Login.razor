@@ -28,6 +28,7 @@
     <button type="submit">Accedi</button>
 </EditForm>
 }
+
 <div>
 @if (successMessage is not null)
 {
@@ -55,9 +56,13 @@
                 successMessage = "Caricamento dashboard in corso";
                 message = result.Message;
                 StateHasChanged();
-                await Task.Delay(5000);
+                await Task.Delay(2000);
 
                 Navigation.NavigateTo("/", forceLoad: true);
+            }
+            else if (result is not null)
+            {
+                errorMessage = result.Message;
             }
         }
         catch (JSException ex)
