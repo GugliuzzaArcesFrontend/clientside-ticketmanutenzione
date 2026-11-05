@@ -1,7 +1,7 @@
-﻿@page "/"
+﻿
 @rendermode InteractiveServer
 
-@attribute [Authorize]
+@* @attribute [Authorize] *@
 
 @inject AuthService Auth
 @inject AuthenticatedHttpService AuthedHttp
@@ -15,31 +15,12 @@
 {
     <p>Caricamento dati...</p>
 }
-else if (errorMessage is not null)
-{
-    <p>@errorMessage</p>
-    <p>
-        <button @onclick="HandleLogout">
-            Tornare al login 
-        </button>
-
-    </p>
-}
 else
 {
     @if (utenza is not null)
     {
         <p>Benvenuto/a @utenza.Nome @utenza.Cognome</p>
     }
-    @if (logoutMessage is null)
-    {
-        <button @onclick="HandleLogout">Disconnetti</button>
-    }
-    else
-    {
-        <p>@logoutMessage</p>
-    }
-    
     @if (segnalazioni is not null)
     {
         <label for="attive">Mostra solo segnalazioni con lavori in corso</label>
@@ -64,34 +45,9 @@ else
     private SegnalazioniOperatoreDto[]? segnalazioni;
 
     private string? errorMessage;
-    private string? logoutMessage;
     private bool attive = false;
     private bool aperte = false;
     private bool isLoading = true;
-
-    private async Task HandleLogout()
-    {
-        try
-        {
-            var result = await Auth.HandleLogout();
-            if (result is not null && result.Success)
-            {
-                logoutMessage = "Disconnessione in corso";
-                StateHasChanged();
-                await Task.Delay(2000);
-
-                Navigation.NavigateTo("/login");
-            }
-        }
-        catch
-        {
-
-        }
-        finally
-        {
-
-        }
-    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -125,7 +81,7 @@ else
             utenzaResponse.EnsureSuccessStatusCode();
 
             utenza = await utenzaResponse.Content.ReadFromJsonAsync<UtenzaDto>();
-            var uriSegnalazioni = uri+"/segnalazioni"+(aperte||attive?"?":"")+(aperte?"aperte=true":"")+(aperte&&attive?"&&":"")+(attive?"attive=true":"");
+            var uriSegnalazioni = uri+"/segnalazioni"+(aperte||attive?"?":"")+(aperte?"aperte=true":"")+(aperte&&attive?"&":"")+(attive?"attive=true":"");
             Log.Debug("uri: {uri}",uriSegnalazioni);
             using var segnalazioniResponse = await AuthedHttp.SendAsync(
                 client,
@@ -151,6 +107,7 @@ else
         }
         catch (Exception ex)
         {
+            errorMessage = "Si è verificato un errore durante il caricamento dei dati.";
             Log.Debug("{message}",ex.Message);
         }
         finally

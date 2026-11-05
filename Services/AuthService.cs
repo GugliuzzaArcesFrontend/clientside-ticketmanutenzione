@@ -2,10 +2,12 @@
 
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+
 using Serilog;
+
 namespace clientside_ticketmanutenzione.Services;
 
-public class AuthService(IJSRuntime _js)
+public class AuthService(IJSRuntime _js,  NavigationManager _navigation)
 {
     public sealed class LoginResult
     {
@@ -26,9 +28,9 @@ public class AuthService(IJSRuntime _js)
             var result = await _js.InvokeAsync<LoginResult>("authLogin", dto);
             if (result is not null && result.Success)
             {
-                return result;
+                _navigation.NavigateTo("/", forceLoad: true);
             }
-            return null;            
+            return result;            
         }
         catch (JSException ex)
         {
@@ -43,9 +45,9 @@ public class AuthService(IJSRuntime _js)
             var result = await _js.InvokeAsync<LogoutResult?>("authLogout");
             if (result is not null && result.Success)
             {
-                return result;
+                _navigation.NavigateTo("/", forceLoad: true);
             }
-            return null;
+            return result;
         }
         catch (JSException ex)
         {

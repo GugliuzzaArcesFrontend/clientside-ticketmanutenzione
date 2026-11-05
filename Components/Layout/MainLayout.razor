@@ -1,5 +1,7 @@
 ﻿@inherits LayoutComponentBase
-@rendermode InteractiveServer
+
+@inject UserSessionService UserSessionService
+
 <Header />
 <main>
 @Body
@@ -10,3 +12,9 @@
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+@code{
+    protected override async Task OnInitializedAsync()
+    {
+        await UserSessionService.InitializeUserAsync();
+    }
+}

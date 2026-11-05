@@ -93,7 +93,7 @@ public static class AuthEndpoints
                     message = loginResponse.Message
                 });
             }
-            return ApiResponseHelper.HandleError(response.StatusCode);
+            return await ApiResponseHelper.HandleError(response);
         })
         .AllowAnonymous();
 

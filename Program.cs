@@ -5,7 +5,6 @@ using clientside_ticketmanutenzione.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Serilog;
-using System.Security.Claims;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Verbose)
@@ -45,7 +44,7 @@ try
             options.Cookie.Name = "__Host-api-test1";
             options.Cookie.HttpOnly = true;
             options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-            options.Cookie.SameSite = SameSiteMode.Lax;
+            options.Cookie.SameSite = SameSiteMode.Strict;
             options.Cookie.Path = "/";
             options.Cookie.MaxAge = TimeSpan.FromHours(8);
 
@@ -53,7 +52,6 @@ try
             options.SlidingExpiration = false;
 
             options.LoginPath = "/login";
-            options.AccessDeniedPath = "/denied";
 
             options.Events.OnRedirectToLogin = context =>
             {
@@ -97,6 +95,7 @@ try
     //spazio per i servizi scoped
 
     builder.Services.AddScoped<AuthService>();
+    builder.Services.AddScoped<UserSessionService>();
     builder.Services.AddScoped<AuthenticatedHttpService>();
 
     //build

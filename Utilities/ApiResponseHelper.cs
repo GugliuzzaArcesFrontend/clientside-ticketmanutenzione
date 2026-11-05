@@ -4,21 +4,28 @@ namespace clientside_ticketmanutenzione.Utilities;
 
 public static class ApiResponseHelper
 {
-    public static IResult HandleError(HttpStatusCode statusCode)
+    public static async Task<IResult> HandleError(HttpResponseMessage response)
     {
-        return (int)statusCode switch
+        var error = await response.Content
+            .ReadFromJsonAsync<Dictionary<string,string>>();
+        string message = error?.GetValueOrDefault("message") ?? "Errore durante la comunicazione con il server";
+        return (int)response.StatusCode switch
         {
             StatusCodes.Status400BadRequest =>
                 Results.BadRequest(new
                 {
-                    message = "Richiesta non valida."
+                    message
                 }),
 
             StatusCodes.Status401Unauthorized =>
-                Results.Unauthorized(),
+                Results.Json(
+                    new { message },
+                    statusCode: StatusCodes.Status401Unauthorized),
 
             StatusCodes.Status403Forbidden =>
-                Results.Forbid(),
+                Results.Json(
+                    new { message },
+                    statusCode: StatusCodes.Status403Forbidden),
 
             StatusCodes.Status404NotFound =>
                 Results.Problem(
@@ -32,7 +39,7 @@ public static class ApiResponseHelper
 
             _ =>
                 Results.Problem(
-                    "Errore durante la comunicazione con il server.",
+                    message,
                     statusCode: StatusCodes.Status502BadGateway)
         };
     }
