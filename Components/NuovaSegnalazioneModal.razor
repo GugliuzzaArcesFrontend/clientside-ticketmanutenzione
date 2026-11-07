@@ -1,0 +1,120 @@
+﻿@inject AuthenticatedHttpService AuthedHttp
+@inject AuthenticationStateProvider AuthProvider
+@inject IHttpClientFactory HttpClientFactory
+
+@if (Nuova)
+{
+    <div class="modal-backdrop" @onclick="Chiudi">
+        @if(!elaborazione)
+        {
+            <dialog @onclick:stopPropagation open >
+            <h3>NuovaSegnalazioneModal</h3>
+            <EditForm Model="@dto" OnValidSubmit="InviaSegnalazione">
+                <DataAnnotationsValidator/>
+                <ValidationSummary/>
+                    
+                <InputText @bind-Value="dto.Luogo"/>
+                <InputText @bind-Value="dto.Descrizione"/>
+
+                <InputSelect @bind-Value="dto.IdTipologia">
+                    <option value="">
+                        Scegli tipologia
+                    </option>
+                    <option value="1">
+                        Idraulico 
+                    </option>
+                    <option value="2">
+                        Elettrico
+                    </option>
+                    <option value="3">
+                        Fognario
+                    </option>
+                    <option value="4">
+                        Gas
+                    </option>
+                    <option value="5">
+                        Linee dati
+                    </option>
+                </InputSelect>
+                <div>
+                    <button type="submit" disabled="@formValidato">Invia nuova segnalazione</button>
+                    <button @onclick="Chiudi">Chiudi</button>
+                </div>
+            </EditForm>
+
+            <p>Daniele hai da fare un form per inviare la nuova segnalazione</p>
+        </dialog>
+        }
+        else
+        {
+            <p>Invio in corso</p>
+        }
+    </div>
+}
+@code {
+    [Parameter]
+    public EventCallback OnChiudi { get; set; }
+    [Parameter]
+    public EventCallback OnInvia { get; set; }
+    [Parameter]
+    public bool Nuova { get; set; }
+
+    private bool elaborazione;
+    private bool formValidato;
+    private int parsedId;
+    private string? errorMessage;
+    private POSTSegnalazioneDto dto = new();
+
+    private async Task InviaSegnalazione()
+    {
+        try
+        {
+            var client = HttpClientFactory.CreateClient("api_test1");
+            var user = (await AuthProvider.GetAuthenticationStateAsync()).User;
+            var sId = user.FindFirst("sid")?.Value;
+            var uId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var uri = $"utenze/{uId}/segnalazioni";
+            if (int.TryParse(uId, out parsedId))
+            {
+                elaborazione = true;
+                dto.IdUtenza = parsedId;
+                Log.Debug("{@dto}", dto);
+                using var response = await AuthedHttp.SendAsync(
+                    client, HttpMethod.Post, uri, dto
+
+                );
+                response.EnsureSuccessStatusCode();
+                StateHasChanged();
+                elaborazione = false;
+                await Inviata();
+            }                       
+        }
+        catch (HttpRequestException ex)
+        {
+            Log.Debug("Caso request {@dto}", dto);
+            errorMessage = $"Errore durante l'invio dei dati: {ex.Message}";
+        }
+        catch (UnauthorizedAccessException)
+        {
+            Log.Debug("Caso unauthorized {@dto}", dto);
+            errorMessage = "Accesso alla risorsa non autorizzato";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Si è verificato un errore durante il caricamento dei dati.";
+            Log.Debug("{message}", ex.Message);
+        }
+        
+    }
+    private async Task Chiudi()
+    {
+        if (OnChiudi.HasDelegate)
+        {
+            await OnChiudi.InvokeAsync();
+        }
+    }
+    private async Task Inviata()
+    {
+        if (OnInvia.HasDelegate) await OnInvia.InvokeAsync();
+    }
+}

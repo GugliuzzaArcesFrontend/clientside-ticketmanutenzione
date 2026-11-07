@@ -1,8 +1,10 @@
 ﻿@inject AuthenticatedHttpService AuthedHttp
 @inject AuthenticationStateProvider AuthenticationState
+
 @if (segnalazione is not null)
 {
-    <dialog open >
+<div class="modal-backdrop" @onclick="Chiudi">
+    <dialog open @onclick:stopPropagation>
         <p>@segnalazione.Id</p>
         <p>@segnalazione.Luogo</p>
         <p>@segnalazione.DataSegnalazione</p>
@@ -11,11 +13,13 @@
 
         <button @onclick="Chiudi">Chiudi</button>
     </dialog>
+</div>
 }
 
 @code {
     [Parameter]
     public int IdSegnalazione { get; set; }
+
     [Parameter]
     public EventCallback OnChiudi { get; set; }
 
@@ -25,23 +29,30 @@
     {
         if (IdSegnalazione!=0)
         {            
-            var authState = await AuthenticationState.GetAuthenticationStateAsync();
+            try
+            {
+                var authState = await AuthenticationState.GetAuthenticationStateAsync();
 
-            var user = authState.User;
+                var user = authState.User;
 
-            var sessionId = user.FindFirst("sid")?.Value;
+                var sessionId = user.FindFirst("sid")?.Value;
 
-            var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if (string.IsNullOrWhiteSpace(userId))
-                throw new UnauthorizedAccessException("UserId non presente nei claims.");
+                if (string.IsNullOrWhiteSpace(userId))
+                    throw new UnauthorizedAccessException("UserId non presente nei claims.");
 
-            using var segnalazioneResponse = await AuthedHttp.SendAsync(
-                HttpMethod.Get,
-                $"utenze/{userId}/segnalazioni/{IdSegnalazione}"
-            );
-            segnalazioneResponse.EnsureSuccessStatusCode();
-            segnalazione = await segnalazioneResponse.Content.ReadFromJsonAsync<SegnalazioniOperatoreDto>();
+                using var segnalazioneResponse = await AuthedHttp.SendAsync(
+                    HttpMethod.Get,
+                    $"utenze/{userId}/segnalazioni/{IdSegnalazione}"
+                );
+                segnalazioneResponse.EnsureSuccessStatusCode();
+                segnalazione = await segnalazioneResponse.Content.ReadFromJsonAsync<SegnalazioniOperatoreDto>();
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                
+            }
         }
         else
         {

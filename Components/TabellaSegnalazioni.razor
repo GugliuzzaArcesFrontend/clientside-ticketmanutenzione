@@ -1,4 +1,4 @@
-﻿<h3>TabellaSegnalazioni</h3>
+﻿@* <h3>TabellaSegnalazioni</h3> *@
 <table>
     <thead>
         <tr>
@@ -14,8 +14,9 @@
 
     <tbody>
         @{
-            int i = 0;
+            int i = 1;
         }
+        
         @if (Segnalazioni is not null)
         {
             @foreach (var segnalazione in Segnalazioni)

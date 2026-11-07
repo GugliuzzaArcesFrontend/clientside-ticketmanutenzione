@@ -1,20 +1,30 @@
 ﻿@inherits LayoutComponentBase
 
 @inject UserSessionService UserSessionService
+@implements IDisposable
 
-<Header />
-<main>
-@Body
-</main>
-<Footer />    
+<CascadingValue Value="UserSessionService">
+    <Header />
+    <main class="overflow-auto d-flex h-100 w-100 justify-content-center align-items-center">
+        @Body
+    </main>
+    <Footer />
+</CascadingValue>
+
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+
 @code{
     protected override async Task OnInitializedAsync()
     {
+        UserSessionService.OnChange += StateHasChanged;
         await UserSessionService.InitializeUserAsync();
+    }
+    public void Dispose()
+    {
+        UserSessionService.OnChange -= StateHasChanged;
     }
 }

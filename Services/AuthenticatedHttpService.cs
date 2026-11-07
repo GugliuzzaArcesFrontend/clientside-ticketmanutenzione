@@ -60,4 +60,32 @@ public class AuthenticatedHttpService(
 
         return response;
     }
+
+    public async Task<HttpResponseMessage> SendAsync<T>(
+        HttpClient client,
+        HttpMethod method,
+        string uri,
+        T body,
+        CancellationToken cancellationToken = default)
+    {
+        var authState = await authenticationStateProvider
+            .GetAuthenticationStateAsync();
+
+        var sessionId = authState.User.FindFirst("sid")?.Value;
+
+        if (string.IsNullOrWhiteSpace(sessionId))
+            throw new UnauthorizedAccessException("Sessione non valida.");
+
+        using var request = new HttpRequestMessage(method, uri);
+        request.Options.Set(
+            AuthTokenHandler.SessionIdKey,
+            sessionId);
+        request.Content = JsonContent.Create(body);
+
+        var response = await client.SendAsync(
+            request,
+            cancellationToken);
+
+        return response;
+    }
 }
