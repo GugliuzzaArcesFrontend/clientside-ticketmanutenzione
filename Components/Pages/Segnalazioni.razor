@@ -1,0 +1,92 @@
+﻿@page "/segnalazioni"
+
+@inject AuthenticatedHttpService AuthedHttp
+@inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager Navigation
+<div>
+    @if (UserSession.IsAuthenticated)
+    {
+        <p>Benvenuto @UserSession.Nominativo </p>
+        <div>
+            <button @onclick="ApriNuova" class="btn btn-primary">Nuova segnalazione</button>
+        @if(segnalazioni is not null && isLoading )
+        {
+        <TabellaSegnalazioni Segnalazioni="segnalazioni"/>
+        }
+        else if (segnalazioni is null && !isLoading)
+        {
+            <button @onclick="()=>Navigation.Refresh(forceReload:true)">Ricarica pagina</button>
+        }
+        </div>
+    }
+    else
+    {
+        <p>Pagina ristretta ai non autorizzati. Per favore accedere</p>
+        <Login/>
+    }
+</div>
+<NuovaSegnalazioneModal Nuova="@Nuova" OnChiudi="ChiudiNuova" OnInvia="SegnalazioneInviata" />
+@code {
+    [CascadingParameter]
+    public UserSessionService UserSession { get; set; } = default!;
+
+    private SegnalazioniOperatoreDto[]? segnalazioni;
+
+    private string? errorMessage;
+    private bool isLoading = true;
+    private bool segnalazioneInviata;
+    private bool aperte;
+    private bool attive;
+    public bool Nuova;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CaricaSegnalazioni();
+    }
+    private async Task CaricaSegnalazioni()
+    {
+        try
+        {
+            var id = UserSession.UserId;
+            var client = HttpClientFactory.CreateClient("api_test1");
+            var uri = $"utenze/{id}/segnalazioni";
+            var uriQueried = uri +(aperte||attive?"?":"")+ (!aperte ? "aperte=true" : "") +(aperte&&attive?"&":"")+ (attive ? "attive=true" : "");
+            using var result = await AuthedHttp.SendAsync(client, HttpMethod.Get, uri);
+            result.EnsureSuccessStatusCode();
+            segnalazioni = await result.Content.ReadFromJsonAsync<SegnalazioniOperatoreDto[]>()??[];
+        }
+        catch (HttpRequestException ex)
+        {
+            errorMessage = $"Errore durante il recupero dei dati: {ex.Message}";
+        }
+        catch (UnauthorizedAccessException)
+        {
+            errorMessage = "Accesso alla risorsa non autorizzato";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Si è verificato un errore durante il caricamento dei dati.";
+            Log.Debug("{message}", ex.Message);
+        }
+    }
+
+    private void ApriNuova()
+    {
+
+        Nuova = true;
+    }
+
+    private void ChiudiNuova()
+    {
+        Nuova = false;
+    }
+
+    private async Task SegnalazioneInviata()
+    {
+        Nuova = false;
+        segnalazioneInviata = true;
+        await CaricaSegnalazioni();
+        await Task.Delay(2000);
+        segnalazioneInviata = false;
+    }
+}

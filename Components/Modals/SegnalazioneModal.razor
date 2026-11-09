@@ -3,8 +3,8 @@
 
 @if (segnalazione is not null)
 {
-<div class="modal-backdrop" @onclick="Chiudi">
-    <dialog open @onclick:stopPropagation>
+    <div class="modal-backdrop  m-auto" @onclick="Chiudi">
+    <dialog class="m-auto" open @onclick:stopPropagation>
         <p>@segnalazione.Id</p>
         <p>@segnalazione.Luogo</p>
         <p>@segnalazione.DataSegnalazione</p>

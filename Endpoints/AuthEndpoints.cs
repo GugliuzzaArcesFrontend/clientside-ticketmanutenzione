@@ -31,12 +31,23 @@ public static class AuthEndpoints
 
             if (response.IsSuccessStatusCode)
             {
-                var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponseDto>();
-                if (loginResponse is null) return Results.Problem("Risposta non valida dal backend.");
+                var loginResponse = await response.Content
+                    .ReadFromJsonAsync<LoginResponseDto>();
+                if (loginResponse is null ||
+                    loginResponse.Utenza is null ||
+                    loginResponse.Utenza.Id <= 0 ||
+                    string.IsNullOrWhiteSpace(loginResponse.AccessToken) ||
+                    string.IsNullOrWhiteSpace(loginResponse.RefreshToken) ||
+                    loginResponse.ExpiresIn <= 0)
+                {
+                    return Results.Problem(
+                        "Risposta non valida dal backend.",
+                        statusCode: StatusCodes.Status502BadGateway);
+                }
                 string ruolo = loginResponse.Utenza.IdRuolo switch
                 {
                     1 => "Amministratore",
-                    2=> "Operatore",
+                    2 => "Operatore",
                     _ => "Manutentore"
                 };
                 var session = new AuthSession
@@ -53,16 +64,7 @@ public static class AuthEndpoints
                     RefreshToken = loginResponse.RefreshToken,
                     RefreshTokenExpirationDate = loginResponse.RefreshExpiresAt
                 };
-                if (loginResponse is null 
-                    || loginResponse.Utenza.Id <= 0 
-                    || string.IsNullOrWhiteSpace(loginResponse.AccessToken) 
-                    || string.IsNullOrWhiteSpace(loginResponse.RefreshToken) 
-                    || loginResponse.ExpiresIn <= 0)
-                {
-                    return Results.Problem(
-                        "Risposta non valida dal backend.",
-                        statusCode: StatusCodes.Status502BadGateway);
-                }
+                
                 var sessionId = sessionManager.CreateSession(session);
 
                 var claims = new List<Claim>
@@ -113,11 +115,15 @@ public static class AuthEndpoints
                         {
                             var refreshToken = session.RefreshToken;
                             var client = httpClientFactory.CreateClient("apiLogin");
-                            var response = await client.PostAsJsonAsync("auth/logout", new { session.RefreshToken});
+                            using var response = await client.PostAsJsonAsync("auth/logout", new { session.RefreshToken});
+                            if (!response.IsSuccessStatusCode) 
+                            {
+                                Log.Warning("Logout fallito. Codice errore: {StatusCose}", response.StatusCode);
+                            }
                         }
                         catch (HttpRequestException ex)
                         {
-                            Log.Debug("Message: {aaa} \n Inner: {bbb}",ex.Message,ex.InnerException);
+                            Log.Error("Message: {aaa} \n Inner: {bbb}",ex.Message,ex.InnerException);
                         }
                         finally 
                         {
@@ -132,7 +138,7 @@ public static class AuthEndpoints
                     message = "Logout effettuato correttamente."
                 });                
             })
-            .RequireAuthorization();
+            .AllowAnonymous();
 
         group.MapGet("/me", (HttpContext context) =>
         {

@@ -1,6 +1,8 @@
 ﻿namespace clientside_ticketmanutenzione.Services;
 
+using System.Collections.Concurrent;
 using System.Security.Cryptography;
+using System.Threading;
 
 using Microsoft.Extensions.Caching.Memory;
 
@@ -9,6 +11,7 @@ using clientside_ticketmanutenzione.Models;
 
 public sealed class AuthSessionManager(IMemoryCache _cache)
 {
+    private readonly ConcurrentDictionary<string, SemaphoreSlim> _refreshLocks = new();
     public string CreateSession(AuthSession session)
     ///<summary>Crea una nuova sessione in memory partendo 
     ///da un oggetto AuthSession</summary>
@@ -35,5 +38,12 @@ public sealed class AuthSessionManager(IMemoryCache _cache)
     ///<summary>Rimozione sessione</summary>
     {
         _cache.Remove(sessionId);
+    }
+
+    public SemaphoreSlim GetRefreshLock(string sessionId)
+    {
+        return _refreshLocks.GetOrAdd(
+            sessionId,
+            _ => new SemaphoreSlim(1, 1));
     }
 }

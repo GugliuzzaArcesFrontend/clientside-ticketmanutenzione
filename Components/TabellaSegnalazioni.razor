@@ -28,7 +28,7 @@
                     <td>@segnalazione.Luogo</td>
                     <td>@segnalazione.Tipologia</td>
                     <td>@(segnalazione.AzioniAttive?"Lavori in corso":"Nessuna operazione in corso")</td>
-                    <td><button @onclick="()=>ApriDettagli(segnalazione.Id)">Dettagli</button></td>
+                    <td><button class="btn btn-primary" @onclick="() => ApriDettagli(segnalazione.Id)">Dettagli</button></td>
                 </tr>
                 {i++;}
             }

@@ -42,6 +42,7 @@ public class UserSessionService : IDisposable
 
     public void SetUser(ClaimsPrincipal user)
     {
+        SessionId = IsAuthenticated ? user.FindFirst("sid")?.Value : null;
         IsAuthenticated = user.Identity?.IsAuthenticated ?? false;
         UserId = IsAuthenticated ? user.FindFirst(ClaimTypes.NameIdentifier)?.Value:null;
         Nominativo= IsAuthenticated ? user.FindFirst(ClaimTypes.Name)?.Value : null;

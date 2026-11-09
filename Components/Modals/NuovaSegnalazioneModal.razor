@@ -5,19 +5,22 @@
 @if (Nuova)
 {
     <div class="modal-backdrop" @onclick="Chiudi">
-        @if(!elaborazione)
-        {
-            <dialog @onclick:stopPropagation open >
+        <dialog @onclick:stopPropagation open >
+            @if(!elaborazione)
+            {
             <h3>NuovaSegnalazioneModal</h3>
             <EditForm Model="@dto" OnValidSubmit="InviaSegnalazione">
                 <DataAnnotationsValidator/>
                 <ValidationSummary/>
                     
-                <InputText @bind-Value="dto.Luogo"/>
-                <InputText @bind-Value="dto.Descrizione"/>
+                <label for="luogo">Luogo</label>
+                <InputText id="luogo"@bind-Value="dto.Luogo"/>
+                <label for="descrizione">Descrizione</label>
+                <InputText id="" @bind-Value="dto.Descrizione"/>
 
-                <InputSelect @bind-Value="dto.IdTipologia">
-                    <option value="">
+                <label for="tipologia">Indica tipologia</label>
+                <InputSelect required id="tipologia" @bind-Value="dto.IdTipologia">
+                    <option disabled selected hidden value="0">
                         Scegli tipologia
                     </option>
                     <option value="1">
@@ -41,14 +44,12 @@
                     <button @onclick="Chiudi">Chiudi</button>
                 </div>
             </EditForm>
-
-            <p>Daniele hai da fare un form per inviare la nuova segnalazione</p>
+            }
+            else
+            {            
+                    <p>Invio in corso</p>            
+            }
         </dialog>
-        }
-        else
-        {
-            <p>Invio in corso</p>
-        }
     </div>
 }
 @code {
@@ -64,6 +65,7 @@
     private int parsedId;
     private string? errorMessage;
     private POSTSegnalazioneDto dto = new();
+    
 
     private async Task InviaSegnalazione()
     {
@@ -81,12 +83,12 @@
                 Log.Debug("{@dto}", dto);
                 using var response = await AuthedHttp.SendAsync(
                     client, HttpMethod.Post, uri, dto
-
                 );
                 response.EnsureSuccessStatusCode();
                 StateHasChanged();
                 elaborazione = false;
                 await Inviata();
+                dto = new();
             }                       
         }
         catch (HttpRequestException ex)
@@ -104,12 +106,13 @@
             errorMessage = "Si è verificato un errore durante il caricamento dei dati.";
             Log.Debug("{message}", ex.Message);
         }
-        
+
     }
     private async Task Chiudi()
     {
         if (OnChiudi.HasDelegate)
         {
+            dto = new();
             await OnChiudi.InvokeAsync();
         }
     }

@@ -1,0 +1,31 @@
+﻿<div>
+    @if(Azioni is not null)
+    {
+        <span>Azioni completate di recente</span>
+        <table>
+            <thead>
+                <tr>
+                    <th>
+                        Azione
+                    </th>
+                    <th>
+                        Segnalazione
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var azione in Azioni)
+                {
+                    <tr>
+                        <td class="ms-2">@azione.Descrizione</td>
+                        <td>@azione.DescrizioneSegnalazione</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+@code {
+    [Parameter]
+    public AzioneDashDto[]? Azioni { get; set; } = default!;
+}

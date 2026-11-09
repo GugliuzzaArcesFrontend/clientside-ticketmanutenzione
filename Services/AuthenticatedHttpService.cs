@@ -1,6 +1,6 @@
-﻿using System.Net.Http;
-
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.JSInterop;
 
 using clientside_ticketmanutenzione.Handlers;
 
@@ -8,7 +8,9 @@ namespace clientside_ticketmanutenzione.Services;
 
 public class AuthenticatedHttpService(
     IHttpClientFactory httpClientFactory,
-    AuthenticationStateProvider authenticationStateProvider)
+    AuthenticationStateProvider authenticationStateProvider,
+    IJSRuntime jsRuntime,
+    NavigationManager navigation)
 {
     public async Task<HttpResponseMessage> SendAsync(
         HttpMethod method,
@@ -31,7 +33,8 @@ public class AuthenticatedHttpService(
 
         var client = httpClientFactory.CreateClient("api_test1");
 
-        return await client.SendAsync(request, cancellationToken);
+        var response = await client.SendAsync(request, cancellationToken);
+        return await HandleResponseAsync(response);
     }
 
     public async Task<HttpResponseMessage> SendAsync(
@@ -58,7 +61,7 @@ public class AuthenticatedHttpService(
             request,
             cancellationToken);
 
-        return response;
+        return await HandleResponseAsync(response);
     }
 
     public async Task<HttpResponseMessage> SendAsync<T>(
@@ -85,6 +88,26 @@ public class AuthenticatedHttpService(
         var response = await client.SendAsync(
             request,
             cancellationToken);
+
+        return await HandleResponseAsync(response);
+    }
+
+    private async Task<HttpResponseMessage> HandleResponseAsync(
+        HttpResponseMessage response)
+    {
+        if (response.StatusCode != System.Net.HttpStatusCode.Unauthorized)
+            return response;
+
+        try
+        {
+            await jsRuntime.InvokeVoidAsync("authLogout");
+        }
+        catch (JSException)
+        {
+            // Il logout JavaScript potrebbe non essere disponibile.
+        }
+
+        navigation.NavigateTo("/login", forceLoad: true);
 
         return response;
     }

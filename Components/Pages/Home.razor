@@ -1,8 +1,5 @@
 ﻿@page "/"
-@inject AuthSessionManager AuthSession
-@inject UserSessionService UserSession
-@implements IDisposable
-
+<div >
 @if (!UserSession.IsAuthenticated)
 {
     <Login/>
@@ -11,14 +8,9 @@ else
 {
     <Dashboard/>
 }
-@* <PSpam/>  *@
+</div>
+
 @code {
-    protected override void OnInitialized()
-    {        
-        UserSession.OnChange += StateHasChanged;
-    }
-    public void Dispose()
-    {
-        UserSession.OnChange -= StateHasChanged;
-    }
+    [CascadingParameter]
+    public UserSessionService UserSession { get; set; } = default!;
 }

@@ -28,7 +28,7 @@ public class AuthService(IJSRuntime _js,  NavigationManager _navigation)
             var result = await _js.InvokeAsync<LoginResult>("authLogin", dto);
             if (result is not null && result.Success)
             {
-                _navigation.NavigateTo("/", forceLoad: true);
+                _navigation.Refresh(forceReload:true);
             }
             return result;            
         }
