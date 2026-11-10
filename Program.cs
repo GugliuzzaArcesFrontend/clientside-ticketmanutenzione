@@ -97,6 +97,7 @@ try
     builder.Services.AddScoped<AuthService>();
     builder.Services.AddScoped<UserSessionService>();
     builder.Services.AddScoped<AuthenticatedHttpService>();
+    builder.Services.AddScoped<ComponentsHandlingService>();
 
     //build
     var app = builder.Build();

@@ -1,0 +1,36 @@
+﻿@inject ComponentsHandlingService ComponentsHandling
+
+<aside class="sidebar px-3 pt-3 position-fixed top-0 start-0 h-100 bg-dark border-end @(isSidebarOpen ? "open" : "")">
+    <span>
+        <button class="btn btn-outline-light me-3"
+                @onclick="ComponentsHandling.ToggleSidebar">
+            ☰
+        </button>
+
+        <select class="form-select form-select-sm w-auto"
+                value="@ComponentsHandling.SelectedTheme"
+                @onchange="HandleThemeChange">
+            <option value="Light">Chiaro</option>
+
+            <option value="Dark">Scuro</option>
+
+            <option value="Auto">Sistema</option>
+        </select>
+    </span>
+
+    <p class="text-white">Placeholder in attesa di creare un menu di navigazione</p>
+</aside>
+@code {
+    [Parameter]
+    public bool isSidebarOpen { get; set; } = false; 
+       
+    private void HandleThemeChange(ChangeEventArgs args)
+    {
+        if (Enum.TryParse<ComponentsHandlingService.Theme>(
+            args.Value?.ToString(),
+            out var theme))
+        {
+            ComponentsHandling.SetTheme(theme);
+        }
+    }
+}

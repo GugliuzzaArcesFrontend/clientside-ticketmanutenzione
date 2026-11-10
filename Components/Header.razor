@@ -1,20 +1,109 @@
-﻿@inject AuthenticationStateProvider AuthenticationStateProvider
+﻿
+@inject AuthService AuthService
+@inject ComponentsHandlingService ComponentsHandling
 
 <header class="flex-shrink-0">
-    <NavMenu/>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3">
+        <button class="btn btn-outline-light me-3"
+                @onclick="ComponentsHandling.ToggleSidebar">
+            ☰
+        </button>
+        <a class="navbar-brand" href="/">
+            Gestionale Ticket Manutenzione
+        </a>
+
+        <div class="ms-auto d-flex align-items-center gap-3">
+
+            @if (UserSession.IsAuthenticated)
+            {
+                <span class="text-white">
+                    @UserSession.Nominativo
+                </span>
+
+                <button class="btn btn-outline-light btn-sm"
+                        @onclick="HandleLogout">
+                    Logout
+                </button>
+            }
+            else
+            {
+                <EditForm Model="@loginModel"
+                          OnValidSubmit="HandleLogin">
+
+                    <DataAnnotationsValidator />
+
+                    <div class="d-flex align-items-center gap-2">
+
+                        <InputText class="form-control form-control-sm"
+                                   placeholder="Email"
+                                   @bind-Value="loginModel.Email" />
+
+                        <InputText class="form-control form-control-sm"
+                                   type="password"
+                                   placeholder="Password"
+                                   @bind-Value="loginModel.Password" />
+
+                        <button type="submit"
+                                class="btn btn-primary btn-sm"
+                                disabled="@isLoading">
+                            @(isLoading ? "..." : "Login")
+                        </button>
+                    </div>
+
+                    @if (errorMessage is not null)
+                    {
+                        <div>
+                            <p class="text-danger text-center">@errorMessage</p>
+                        </div>
+                    }
+                </EditForm>
+            }
+
+        </div>
+    </nav>
 
 </header>
 @code {
-    private string? nominativo;
+    [CascadingParameter]
+    public UserSessionService UserSession { get; set; } = default!;
 
-    protected override async Task OnInitializedAsync()
+    private LoginDto loginModel = new();
+    private bool isLoading;
+    private string? errorMessage;
+
+    private async Task HandleLogin()
     {
-        var authState = await AuthenticationStateProvider
-            .GetAuthenticationStateAsync();
-        var user = authState.User;
+        bool success = false;
+        try
+        {
+            isLoading = true;
 
-        nominativo = user.FindFirst(ClaimTypes.Name)?.Value;
+            var result = await AuthService.HandleLogin(loginModel);
+            await UserSession.InitializeUserAsync();
+            if (result is not null && result.Success)
+            {
+                success = true;
+            }
+            else if (result is not null)
+            {
+                errorMessage = result.Message;
+            }
 
+        }
+        catch (JSException ex)
+        {
+            Log.Debug("Eccezione JS:\nMessage: {1}", ex.Message);
+        }
+        finally
+        {
+            if (!success) isLoading = false;
+        }
+
+    }
+
+    private async Task HandleLogout()
+    {
+        await AuthService.HandleLogout();
     }
 
 }

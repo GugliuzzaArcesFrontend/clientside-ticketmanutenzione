@@ -1,14 +1,48 @@
 ﻿@inherits LayoutComponentBase
 
 @inject UserSessionService UserSessionService
+@inject ComponentsHandlingService ComponentsHandling
+@inject IJSRuntime JS
+
 @implements IDisposable
 
 <CascadingValue Value="UserSessionService" IsFixed="false">
+    
     <Header />
-    <main class="overflow-auto d-flex h-100 w-100 justify-content-center align-items-center">
+    <Sidebar isSidebarOpen="isSidebarOpen"/>
+    @* <aside 
+        class="sidebar px-3 pt-3 position-fixed top-0 start-0 h-100 bg-dark border-end @(isSidebarOpen ? "open" : "")"
+
+    >
+        <span>
+        <button class="btn btn-outline-light me-3"
+                @onclick="ComponentsHandling.ToggleSidebar">
+            ☰
+        </button>
+
+        <select class="form-select form-select-sm w-auto"
+                value="@ComponentsHandling.Theme"
+                @onchange="HandleThemeChange">
+            <option value="Light">Light</option>
+
+            <option value="Dark">Dark</option>
+
+            <option value="Auto">Auto</option>
+        </select>
+
+        </span>
+        <p class="text-white">Placeholder in attesa di creare un menu di navigazione</p>
+    </aside> *@
+
+    <main 
+        class="overflow-auto d-flex h-100 w-100 justify-content-center align-items-center"
+        @onclick="CloseSide"
+    >
         @Body
     </main>
-    <Footer />
+    
+    <Footer  />
+
 </CascadingValue>
 
 <div id="blazor-error-ui" data-nosnippet>
@@ -18,8 +52,11 @@
 </div>
 
 @code{
+    private bool isSidebarOpen=false;
     protected override async Task OnInitializedAsync()
     {
+        ComponentsHandling.OnSetTheme += HandleThemeChanged;
+        ComponentsHandling.OnToggleSidebar += ToggleSidebar;
         UserSessionService.OnChange += HandleUserSessionChanged;
         await UserSessionService.InitializeUserAsync();
     }
@@ -27,8 +64,76 @@
     {
         _ = InvokeAsync(StateHasChanged);
     }
+    private void ToggleSidebar()
+    {
+        isSidebarOpen = !isSidebarOpen;
+        _ = InvokeAsync(StateHasChanged);
+    }
+    private void CloseSide()
+    {
+        if (isSidebarOpen)
+        {
+            isSidebarOpen = false;
+            StateHasChanged();
+        }
+    }
     public void Dispose()
     {
+        ComponentsHandling.OnSetTheme -= HandleThemeChanged;
+        ComponentsHandling.OnToggleSidebar -= ToggleSidebar;
         UserSessionService.OnChange -= HandleUserSessionChanged;
+    }
+
+    // private void HandleThemeChange(ChangeEventArgs args)
+    // {
+    //     if (Enum.TryParse<ComponentsHandlingService.ThemeMode>(
+    //         args.Value?.ToString(),
+    //         out var theme))
+    //     {
+    //         ComponentsHandling.SetTheme(theme);
+    //     }
+    // }
+
+    // private async Task HandleThemeChanged()
+    // {
+    //     await InvokeAsync(async () =>
+    //     {
+    //         await JS.InvokeVoidAsync(
+    //             "themeManager.setTheme",
+    //             ComponentsHandling.Theme.ToString()
+    //         );
+    //     });
+    // }
+    private void HandleThemeChanged()
+    {
+        _ = InvokeAsync(async () =>
+        {
+            await JS.InvokeVoidAsync(
+                "themeManager.setTheme",
+                ComponentsHandling.SelectedTheme.ToString()
+            );
+        });
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // await JS.InvokeVoidAsync(
+            //     "themeManager.setTheme",
+            //     ComponentsHandling.Theme.ToString()
+            // );
+
+            var savedTheme = await JS.InvokeAsync<string>(
+                        "themeManager.initialize",
+                        ComponentsHandling.SelectedTheme.ToString()
+                    );
+
+            if (Enum.TryParse<ComponentsHandlingService.Theme>(
+                savedTheme,
+                out var theme))
+            {
+                ComponentsHandling.SetTheme(theme);
+            }
+        }
     }
 }
