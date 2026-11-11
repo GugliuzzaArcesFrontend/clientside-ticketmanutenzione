@@ -27,9 +27,11 @@
             }
             else
             {
-                <EditForm Model="@loginModel"
-                          OnValidSubmit="HandleLogin">
-
+                <EditForm 
+                    Model="@loginModel"
+                    OnValidSubmit="HandleLogin"
+                    Context="loginContext"
+                >
                     <DataAnnotationsValidator />
 
                     <div class="d-flex align-items-center gap-2">
@@ -45,7 +47,7 @@
 
                         <button type="submit"
                                 class="btn btn-primary btn-sm"
-                                disabled="@isLoading">
+                                disabled="@(isLoading||!loginContext.Validate())">
                             @(isLoading ? "..." : "Login")
                         </button>
                     </div>

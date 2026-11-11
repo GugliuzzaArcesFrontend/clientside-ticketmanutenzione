@@ -8,7 +8,16 @@
     {
         <p>Benvenuto @UserSession.Nominativo </p>
         <div>
-            <button @onclick="ApriNuova" class="btn btn-primary">Nuova segnalazione</button>
+            @* <button @onclick="ApriNuova" class="btn btn-primary">Nuova segnalazione</button> *@
+
+            @if (!segnalazioneInviata)
+            {
+                <button class="btn btn-primary" @onclick="ApriNuova">Nuova segnalazione </button>
+            }
+            else
+            {
+                <p class="text-success">Segnalazione inviata con successo</p>
+            }
         @if(segnalazioni is not null && isLoading )
         {
         <TabellaSegnalazioni Segnalazioni="segnalazioni"/>
@@ -35,9 +44,9 @@
     private string? errorMessage;
     private bool isLoading = true;
     private bool segnalazioneInviata;
-    private bool aperte;
-    private bool attive;
-    public bool Nuova;
+    private bool aperte=false;
+    private bool attive=false;
+    public bool Nuova=false;
 
     protected override async Task OnInitializedAsync()
     {

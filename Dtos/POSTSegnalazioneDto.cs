@@ -1,4 +1,6 @@
-﻿namespace clientside_ticketmanutenzione.Dtos
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace clientside_ticketmanutenzione.Dtos
 {
     public class POSTSegnalazioneDto
     {
@@ -6,13 +8,13 @@
 
 
         public virtual int? IdUtenza { get; set; }              //prende IdUtenza per fare riferimento all'utente che sta creando la segnalazione
-
+        [Required]
         public string Luogo { get; set; } = string.Empty;       //luogo della segnalazione
 
         //public DateOnly Data { get; set; } = DateOnly.FromDateTime(DateTime.Now);
-
+        [Required]
         public virtual int IdTipologia { get; set; }            //tipo di segnalazione
-
+        [Required]
         public string Descrizione { get; set; } = string.Empty; //Descrizione della segnalazione. può anche essere anche vuota
 
         //public virtual int? IdAzione { get; set; }            

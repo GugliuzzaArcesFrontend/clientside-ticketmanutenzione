@@ -10,30 +10,7 @@
     
     <Header />
     <Sidebar isSidebarOpen="isSidebarOpen"/>
-    @* <aside 
-        class="sidebar px-3 pt-3 position-fixed top-0 start-0 h-100 bg-dark border-end @(isSidebarOpen ? "open" : "")"
-
-    >
-        <span>
-        <button class="btn btn-outline-light me-3"
-                @onclick="ComponentsHandling.ToggleSidebar">
-            ☰
-        </button>
-
-        <select class="form-select form-select-sm w-auto"
-                value="@ComponentsHandling.Theme"
-                @onchange="HandleThemeChange">
-            <option value="Light">Light</option>
-
-            <option value="Dark">Dark</option>
-
-            <option value="Auto">Auto</option>
-        </select>
-
-        </span>
-        <p class="text-white">Placeholder in attesa di creare un menu di navigazione</p>
-    </aside> *@
-
+    
     <main 
         class="overflow-auto d-flex h-100 w-100 justify-content-center align-items-center"
         @onclick="CloseSide"

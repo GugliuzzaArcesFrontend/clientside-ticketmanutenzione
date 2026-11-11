@@ -14,23 +14,27 @@
 }
 else
 {
-    @if (utenza is not null)
+    @* @if (utenza is not null)
     {
         <p>Benvenuto/a @utenza.Nome @utenza.Cognome</p>
+    } *@
+    if (UserSession is not null)
+    {
+        <p>Benvenuto/a @UserSession.Nominativo</p>    
     }
     <div class="w-100 d-flex justify-content-between">
-        @if (!segnalazioneInviata)
-        {
-            <button class="btn btn-primary" @onclick="ApriNuova">Nuova segnalazione </button>
-        }
-        else
-        {
-            <p class="text-success">Segnalazione inviata con successo</p>
-        }
+    @if (!segnalazioneInviata)
+    {
+        <button class="btn btn-primary" @onclick="ApriNuova">Nuova segnalazione </button>
+    }
+    else
+    {
+        <p class="text-success">Segnalazione inviata con successo</p>
+    }
 
-        <NavLink href="/segnalazioni" class="btn btn-primary">
-            Vai a tutte le segnalazioni
-        </NavLink>
+    <NavLink href="/segnalazioni" class="btn btn-primary">
+        Vai a tutte le segnalazioni
+    </NavLink>
     </div>
     @if (segnalazioni is not null)
     {
@@ -99,9 +103,9 @@ else
 
             utenza = await utenzaResponse.Content.ReadFromJsonAsync<UtenzaDto>();
 
-            //creare uno string builder programmatico e togliere sta merdaccia hardcoded così se le url query crescono non sto schifo non cresce
+            //creare uno string builder programmatico e togliere sta merdaccia hardcoded così se le url query crescono sto schifo non cresce
             var uriSegnalazioni = uri+"/segnalazioni?dash=true"+(!aperte?"&aperte=true":"")+(attive?"&attive=true":"");
-            //creare uno string builder programmatico e togliere sta merdaccia hardcoded così se le url query crescono non sto schifo non cresce
+            //creare uno string builder programmatico e togliere sta merdaccia hardcoded così se le url query crescono sto schifo non cresce
 
             // Log.Debug("uri: {uri}",uriSegnalazioni);
             using var segnalazioniResponse = await AuthedHttp.SendAsync(

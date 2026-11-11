@@ -9,7 +9,12 @@
         <p>@segnalazione.Luogo</p>
         <p>@segnalazione.DataSegnalazione</p>
         <p>@segnalazione.Descrizione</p>
-        @* creare un dto per servire la segnalazione in dettaglio e creare qui in template i for di azioni e allegati corrispondenti *@
+        @* 
+            creare un dto per servire la segnalazione in dettaglio (completa di azioni e allegati)
+            modificare il modal per permettere archiviazione/eliminazione o chiusura con successo segnalazione
+            creare qui in template i for di azioni e allegati corrispondenti 
+            creare bottone aggiungi azione e aggiungi allegato
+        *@
 
         <button @onclick="Chiudi">Chiudi</button>
     </dialog>
@@ -17,6 +22,8 @@
 }
 
 @code {
+    [CascadingParameter]
+    public UserSessionService? UserSession { get; set; } = default!;
     [Parameter]
     public int IdSegnalazione { get; set; }
 
@@ -31,14 +38,11 @@
         {            
             try
             {
-                var authState = await AuthenticationState.GetAuthenticationStateAsync();
-
-                var user = authState.User;
-
-                var sessionId = user.FindFirst("sid")?.Value;
-
-                var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
+                // var authState = await AuthenticationState.GetAuthenticationStateAsync();
+                // var user = authState.User;
+                // var sessionId = user.FindFirst("sid")?.Value;
+                // var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var userId = UserSession?.UserId;
                 if (string.IsNullOrWhiteSpace(userId))
                     throw new UnauthorizedAccessException("UserId non presente nei claims.");
 
@@ -51,7 +55,7 @@
             }
             catch (UnauthorizedAccessException ex)
             {
-                
+                //Implementare auth.refresh/vedere inner exceptions di unauthorized per capirle meglio
             }
         }
         else

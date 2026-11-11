@@ -9,17 +9,21 @@
             @if(!elaborazione)
             {
             <h3>NuovaSegnalazioneModal</h3>
-            <EditForm Model="@dto" OnValidSubmit="InviaSegnalazione">
+            <EditForm 
+                Model="@segnalazioneModel" 
+                OnValidSubmit="InviaSegnalazione"
+                Context="segnalazioneContext"
+            >
                 <DataAnnotationsValidator/>
                 <ValidationSummary/>
                     
                 <label for="luogo">Luogo</label>
-                <InputText id="luogo"@bind-Value="dto.Luogo"/>
+                <InputText id="luogo"@bind-Value="segnalazioneModel.Luogo"/>
                 <label for="descrizione">Descrizione</label>
-                <InputText id="" @bind-Value="dto.Descrizione"/>
+                <InputText id="" @bind-Value="segnalazioneModel.Descrizione"/>
 
                 <label for="tipologia">Indica tipologia</label>
-                <InputSelect required id="tipologia" @bind-Value="dto.IdTipologia">
+                <InputSelect required id="tipologia" @bind-Value="segnalazioneModel.IdTipologia">
                     <option disabled selected hidden value="0">
                         Scegli tipologia
                     </option>
@@ -39,8 +43,11 @@
                         Linee dati
                     </option>
                 </InputSelect>
+
                 <div>
-                    <button type="submit" disabled="@formValidato">Invia nuova segnalazione</button>
+                    <button type="submit" 
+                        disabled="@(!segnalazioneContext.Validate())"
+                        >Invia nuova segnalazione</button>
                     <button @onclick="Chiudi">Chiudi</button>
                 </div>
             </EditForm>
@@ -61,10 +68,9 @@
     public bool Nuova { get; set; }
 
     private bool elaborazione;
-    private bool formValidato;
     private int parsedId;
     private string? errorMessage;
-    private POSTSegnalazioneDto dto = new();
+    private POSTSegnalazioneDto segnalazioneModel = new();
     
 
     private async Task InviaSegnalazione()
@@ -79,26 +85,26 @@
             if (int.TryParse(uId, out parsedId))
             {
                 elaborazione = true;
-                dto.IdUtenza = parsedId;
-                Log.Debug("{@dto}", dto);
+                segnalazioneModel.IdUtenza = parsedId;
+                Log.Debug("{@dto}", segnalazioneModel);
                 using var response = await AuthedHttp.SendAsync(
-                    client, HttpMethod.Post, uri, dto
+                    client, HttpMethod.Post, uri, segnalazioneModel
                 );
                 response.EnsureSuccessStatusCode();
                 StateHasChanged();
                 elaborazione = false;
                 await Inviata();
-                dto = new();
+                segnalazioneModel = new();
             }                       
         }
         catch (HttpRequestException ex)
         {
-            Log.Debug("Caso request {@dto}", dto);
+            Log.Debug("Caso request {@dto}", segnalazioneModel);
             errorMessage = $"Errore durante l'invio dei dati: {ex.Message}";
         }
         catch (UnauthorizedAccessException)
         {
-            Log.Debug("Caso unauthorized {@dto}", dto);
+            Log.Debug("Caso unauthorized {@dto}", segnalazioneModel);
             errorMessage = "Accesso alla risorsa non autorizzato";
         }
         catch (Exception ex)
@@ -112,7 +118,7 @@
     {
         if (OnChiudi.HasDelegate)
         {
-            dto = new();
+            segnalazioneModel = new();
             await OnChiudi.InvokeAsync();
         }
     }

@@ -6,13 +6,17 @@
 @if (!isLoading)
 {
     <div >
-        <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+        <EditForm 
+            Model="@loginModel" 
+            OnValidSubmit="HandleLogin"
+            Context="loginContext"
+        >
             <DataAnnotationsValidator/>
             <ValidationSummary/>
-            @if(errorMessage is not null)
+            @* @if (errorMessage is not null)
             {
                 <p class="text-danger">@errorMessage</p>
-            }
+            } *@
             <br/>
             <label for="email">E-Mail</label>
             <InputText id="email" @bind-Value="loginModel.Email" />
@@ -22,9 +26,18 @@
             <InputText id="password" type="password" @bind-Value="loginModel.Password"/>
             <ValidationMessage For="@(()=>loginModel.Password)"/>
     
-            <button type="submit">Accedi</button>
+            <button 
+                type="submit"
+                disabled="@(!loginContext.Validate())"
+                >
+                Accedi
+            </button>
         </EditForm>
     </div>
+    @if (errorMessage is not null)
+    {
+        <p class="text-danger">@errorMessage </p>
+    }
 }
 else
 {    
@@ -56,6 +69,11 @@ else
         catch (JSException ex)
         {
             Log.Debug("Eccezione JS:\nMessage: {1}",ex.Message);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+            Log.Debug("{message}\n{inner}",ex.Message,ex.InnerException);
         }
         finally
         {

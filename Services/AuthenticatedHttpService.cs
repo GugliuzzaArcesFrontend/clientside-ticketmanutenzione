@@ -104,7 +104,7 @@ public class AuthenticatedHttpService(
         }
         catch (JSException)
         {
-            // Il logout JavaScript potrebbe non essere disponibile.
+            // Implementare gestione errori js
         }
 
         navigation.NavigateTo("/login", forceLoad: true);

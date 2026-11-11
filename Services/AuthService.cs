@@ -37,6 +37,11 @@ public class AuthService(IJSRuntime _js,  NavigationManager _navigation)
             Log.Debug("{1}", ex.Message);
             return null;
         }
+        catch(Exception ex)
+        {
+            Log.Debug("Eccezione in AuthService.HandleLogin\n Messaggio:{ex.Message}", ex.Message);
+            return null;
+        }
     }
     public async Task<LogoutResult?> HandleLogout()
     {

@@ -13,7 +13,7 @@
     return {
         success: response.ok,
         status: response.status,
-        message: data?.message ?? ""
+        message: data?.message ?? data?.detail ?? data?.title ?? ""
     };
 };
 
