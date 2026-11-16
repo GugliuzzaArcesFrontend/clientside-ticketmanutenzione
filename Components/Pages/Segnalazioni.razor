@@ -3,41 +3,59 @@
 @inject AuthenticatedHttpService AuthedHttp
 @inject IHttpClientFactory HttpClientFactory
 @inject NavigationManager Navigation
-<div>
+@inject IJSRuntime JS
+
+<section class="h-100">
+    @* <div @ref="SectionTop"></div> *@
+    <div @ref="SectionTop" class="h-100">
     @if (UserSession.IsAuthenticated)
     {
-        <p>Benvenuto @UserSession.Nominativo </p>
-        <div>
+        <NavLink  href="/">Torna alla main page</NavLink>
+        <br>
+        <div >
             @* <button @onclick="ApriNuova" class="btn btn-primary">Nuova segnalazione</button> *@
-
+        @if (segnalazioni is not null && isLoading)
+        {
             @if (!segnalazioneInviata)
             {
-                <button class="btn btn-primary" @onclick="ApriNuova">Nuova segnalazione </button>
+                <button class="btn btn-primary text-info" @onclick="ApriNuova">Nuova segnalazione </button>
             }
             else
             {
                 <p class="text-success">Segnalazione inviata con successo</p>
             }
-        @if(segnalazioni is not null && isLoading )
-        {
-        <TabellaSegnalazioni Segnalazioni="segnalazioni"/>
+        
+            <TabellaSegnalazioni Segnalazioni="segnalazioni"/>
         }
-        else if (segnalazioni is null && !isLoading)
+        else if (hasFailed)
         {
             <button @onclick="()=>Navigation.Refresh(forceReload:true)">Ricarica pagina</button>
         }
+        @if (errorMessage is not null)
+        {
+            <p>@errorMessage</p>       
+        }
         </div>
+
     }
     else
     {
         <p>Pagina ristretta ai non autorizzati. Per favore accedere</p>
         <Login/>
     }
-</div>
+    @if (IsYScrollable)
+    {
+        <ButtonScrollToTop ScrollTarget="SectionTop" />
+    }
+    </div>
+</section>
 <NuovaSegnalazioneModal Nuova="@Nuova" OnChiudi="ChiudiNuova" OnInvia="SegnalazioneInviata" />
 @code {
     [CascadingParameter]
     public UserSessionService UserSession { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public ElementReference SectionTop  { get; set; }
 
     private SegnalazioniOperatoreDto[]? segnalazioni;
 
@@ -46,7 +64,26 @@
     private bool segnalazioneInviata;
     private bool aperte=false;
     private bool attive=false;
+    private bool hasFailed;
+    private int rowsPerPage=10;
+    private int pageNumber = 1;
+    private bool IsYScrollable;
+
     public bool Nuova=false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        var isScrollable = await JS.InvokeAsync<bool>(
+           "isElementYScrollable",
+           SectionTop
+       );
+
+        if (IsYScrollable != isScrollable)
+        {
+            IsYScrollable = isScrollable;
+            StateHasChanged();
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -66,14 +103,17 @@
         }
         catch (HttpRequestException ex)
         {
+            hasFailed = true;
             errorMessage = $"Errore durante il recupero dei dati: {ex.Message}";
         }
         catch (UnauthorizedAccessException)
         {
+            hasFailed = true;
             errorMessage = "Accesso alla risorsa non autorizzato";
         }
         catch (Exception ex)
         {
+            hasFailed = true;
             errorMessage = "Si è verificato un errore durante il caricamento dei dati.";
             Log.Debug("{message}", ex.Message);
         }

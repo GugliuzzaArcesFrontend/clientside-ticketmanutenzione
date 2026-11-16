@@ -40,10 +40,30 @@ h1:focus {
 *, *::before, *::after {
     box-sizing: border-box;
 }
-/** {
+* {
     margin: 0;
     padding: 0;
-}*/
+}
 html, body {
     height: 100vh;
+}
+.scrollcontainerx{
+    scroll-snap-type: x mandatory;
+}
+.scroll-container-y {
+    height: 100%;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    scroll-snap-type: y mandatory;
+}
+/*.scroll-container-y > * {
+    flex: 0 0 100%;
+    min-height: 100%;
+    scroll-snap-align: start;
+}*/
+.scrollpointstart {
+    flex: 0 0 100%;
+    height: auto;
+    scroll-snap-align: start;
 }

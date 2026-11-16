@@ -1,0 +1,82 @@
+﻿@inject ComponentsHandlingService ComponentsHandling
+
+<aside class="sidebar d-flex flex-column px-3 pt-3 position-fixed top-0 start-0 h-100 bg-secondary border-end @(isSidebarOpen ? "open" : "")">
+    <div class="d-flex justify-content-between mb-2">
+        <button class="btn btn-outline-light bg-dark me-3"
+                @onclick="ComponentsHandling.ToggleSidebar">
+            ☰
+        </button>
+
+        <select class="form-select form-select-sm w-auto"
+                value="@ComponentsHandling.SelectedTheme"
+                @onchange="HandleThemeChange">
+            <option value="Light">Chiaro</option>
+
+            <option value="Dark">Scuro</option>
+
+            <option value="Auto">Sistema</option>
+        </select>
+    </div>
+
+
+  @*   <section>
+        <NavLink href="/">Dashboard</NavLink>
+        <NavLink href="/segnalazioni">Segnalazioni</NavLink>
+        <NavLink href="/azioni">Azioni</NavLink>
+        <NavLink href="/manutentori">Manutentori</NavLink>
+        <NavLink href="/profilo">Gestione account</NavLink>
+    </section> *@
+    <div>
+
+        <ul class="nav nav-pills flex-column mb-auto mt-1 mx-1 ">
+            @foreach(var anchor in anchorsList)
+            {
+                <li class="m-1">
+                    <NavLink href="@anchor.Href" class="nav-link text-white">
+                        <svg class="bi me-2" width="16" height="16"><use xlink:href="#people-circle" /></svg> 
+                        @anchor.Text
+                    </NavLink>
+                </li>
+            }
+            @* 
+            <li>
+                <NavLink href="/profilo" class="nav-link text-white">
+                    <svg class="bi me-2" width="16" height="16"><use xlink:href="#people-circle" /></svg> //mantenere questo commento 
+                    Pagina personale
+                </NavLink>
+            </li> *@
+        </ul>
+    </div>
+
+    <div class="dropdown mt-auto">
+        <a class="d-flex align-items-center link-dark text-decoration-none dropdown-toggle" id="dropdownUser2" data-bs-toggle="dropdown" aria-expanded="false">
+            <img src="https://github.com/mdo.png" alt="" width="32" height="32" class="rounded-circle me-2">
+            <strong>mdo</strong>
+        </a>
+        <ul class="dropdown-menu text-small shadow" aria-labelledby="dropdownUser2">
+            <li><NavLink class="dropdown-item" >Placeholder</NavLink></li>
+        </ul>
+    </div>
+</aside>
+@code {
+    [Parameter]
+    public bool isSidebarOpen { get; set; } = false;
+
+    private List<(string Href, string Text)> anchorsList = [
+            ("/","Dashboard"),
+            ("/segnalazioni", "Segnalazioni"),
+            ("/azioni","Operazioni"),
+            ("/manutentori","Lista manutentori"),
+            ("/profilo","Pagina personale"),
+
+    ];
+    private void HandleThemeChange(ChangeEventArgs args)
+    {
+        if (Enum.TryParse<ComponentsHandlingService.Theme>(
+            args.Value?.ToString(),
+            out var theme))
+        {
+            ComponentsHandling.SetTheme(theme);
+        }
+    }
+}

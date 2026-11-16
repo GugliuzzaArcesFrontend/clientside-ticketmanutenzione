@@ -1,17 +1,17 @@
 ﻿@inherits LayoutComponentBase
 
-@inject UserSessionService UserSessionService
+@inject UserSessionService UserSession
 @inject ComponentsHandlingService ComponentsHandling
 @inject IJSRuntime JS
 
 @implements IDisposable
 
-<CascadingValue Value="UserSessionService" IsFixed="false">
+<CascadingValue Value="UserSession" IsFixed="false">
     
     <Header />
     <Sidebar isSidebarOpen="isSidebarOpen"/>
     
-    <main 
+    <main @ref="MainContainer"
         class="overflow-auto d-flex h-100 w-100 justify-content-center align-items-center"
         @onclick="CloseSide"
     >
@@ -29,13 +29,14 @@
 </div>
 
 @code{
+    public ElementReference MainContainer { get; set; }
     private bool isSidebarOpen=false;
     protected override async Task OnInitializedAsync()
     {
         ComponentsHandling.OnSetTheme += HandleThemeChanged;
         ComponentsHandling.OnToggleSidebar += ToggleSidebar;
-        UserSessionService.OnChange += HandleUserSessionChanged;
-        await UserSessionService.InitializeUserAsync();
+        UserSession.OnChange += HandleUserSessionChanged;
+        await UserSession.InitializeUserAsync();
     }
     private void HandleUserSessionChanged()
     {
@@ -58,7 +59,7 @@
     {
         ComponentsHandling.OnSetTheme -= HandleThemeChanged;
         ComponentsHandling.OnToggleSidebar -= ToggleSidebar;
-        UserSessionService.OnChange -= HandleUserSessionChanged;
+        UserSession.OnChange -= HandleUserSessionChanged;
     }
 
     // private void HandleThemeChange(ChangeEventArgs args)

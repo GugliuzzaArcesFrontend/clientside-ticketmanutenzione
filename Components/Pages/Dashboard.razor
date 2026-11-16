@@ -1,28 +1,23 @@
-﻿
-@rendermode InteractiveServer
-
-@attribute [Authorize]
+﻿@attribute [Authorize]
 
 @inject AuthenticatedHttpService AuthedHttp
 @inject NavigationManager Navigation 
 @inject IHttpClientFactory HttpClientFactory
 
-<div>
+<div id="page-top" class="h-100">
 @if (isLoading)
 {
     <p>Caricamento dati...</p>
 }
 else
 {
-    @* @if (utenza is not null)
-    {
-        <p>Benvenuto/a @utenza.Nome @utenza.Cognome</p>
-    } *@
+   
     if (UserSession is not null)
     {
         <p>Benvenuto/a @UserSession.Nominativo</p>    
     }
     <div class="w-100 d-flex justify-content-between">
+
     @if (!segnalazioneInviata)
     {
         <button class="btn btn-primary" @onclick="ApriNuova">Nuova segnalazione </button>
@@ -35,31 +30,107 @@ else
     <NavLink href="/segnalazioni" class="btn btn-primary">
         Vai a tutte le segnalazioni
     </NavLink>
-    </div>
-    @if (segnalazioni is not null)
-    {
-        <div class="d-flex flex-row">
-            <div class="col-8 mt-2 ms-4 justify-content-between">
-                <label for="attive">Mostra solo segnalazioni con lavori in corso</label>
-                <input type="checkbox" name="attive" id="attive"
-                       @bind="attive"
-                       @bind:after="CaricaDashboard" />
-                <label for="attive">Mostra anche segnalazioni concluse</label>
-                <input type="checkbox" name="aperte" id="aperte"
-                        @bind="aperte"
-                        @bind:after="CaricaDashboard" />
-                <TabellaSegnalazioni Segnalazioni="segnalazioni"/>
-            </div>
 
-            <div class="col-4 mt-2 ms-4">
-                <TabellaAzioniRecenti Azioni="azioni"/>
-            </div>
-        </div>
-    }
-    else
-    {
-        <p>Caricamento in corso...</p>
-    }
+    </div>
+        @* 
+        <ScrollContainerY>
+            @foreach (var fragment in Fragments)
+            {
+                <ScrollArticle>
+                    <Head>
+                    </Head>
+
+                    <Main>
+                    </Main>
+                    
+                    <End>
+                    </End>
+                </ScrollArticle>
+            } 
+        </ScrollContainerY>
+        *@
+        <ScrollContainerY Classes="h-75">
+
+            @if (segnalazioni is not null && !hasFailed)
+            {
+                <ScrollArticle>
+                    <Main>
+                        <div class="d-flex flex-row scrollpointstart ">
+                            <div class="col-8 mt-2 ms-4 justify-content-between">
+                                <label for="attive">Mostra solo segnalazioni con lavori in corso</label>
+                                <input type="checkbox" name="attive" id="attive"
+                                       @bind="attive"
+                                       @bind:after="CaricaDashboard" />
+
+                                <label for="attive">Mostra anche segnalazioni concluse</label>
+                                <input type="checkbox" name="aperte" id="aperte"
+                                       @bind="aperte"
+                                       @bind:after="CaricaDashboard" />
+
+                                <TabellaSegnalazioni Segnalazioni="segnalazioni" />
+                            </div>
+
+                            <div class="col-3 mt-2 ms-4">
+                                <TabellaAzioniRecenti Azioni="azioni" />
+                            </div>
+                        </div>
+                    </Main>
+                </ScrollArticle>
+
+                <ScrollArticle>
+                    <Main>
+                        <div class="d-flex flex-row scrollpointstart ">
+                            <div class="col-8 mt-2 ms-4 justify-content-between">
+                                <label for="attive">Mostra solo segnalazioni con lavori in corso</label>
+                                <input type="checkbox" name="attive" id="attive"
+                                       @bind="attive"
+                                       @bind:after="CaricaDashboard" />
+
+                                <label for="attive">Mostra anche segnalazioni concluse</label>
+                                <input type="checkbox" name="aperte" id="aperte"
+                                       @bind="aperte"
+                                       @bind:after="CaricaDashboard" />
+
+                                <TabellaSegnalazioni Segnalazioni="segnalazioni" />
+                            </div>
+
+                            <div class="col-3 mt-2 ms-4">
+                                <TabellaAzioniRecenti Azioni="azioni" />
+                            </div>
+                        </div>
+                    </Main>
+                </ScrollArticle>
+                <ScrollArticle>
+                    <Main>
+                        <div class="d-flex flex-row scrollpointstart ">
+                            <div class="col-8 mt-2 ms-4 justify-content-between">
+                                <label for="attive">Mostra solo segnalazioni con lavori in corso</label>
+                                <input type="checkbox" name="attive" id="attive"
+                                       @bind="attive"
+                                       @bind:after="CaricaDashboard" />
+
+                                <label for="attive">Mostra anche segnalazioni concluse</label>
+                                <input type="checkbox" name="aperte" id="aperte"
+                                       @bind="aperte"
+                                       @bind:after="CaricaDashboard" />
+
+                                <TabellaSegnalazioni Segnalazioni="segnalazioni" />
+                            </div>
+
+                            <div class="col-3 mt-2 ms-4">
+                                <TabellaAzioniRecenti Azioni="azioni" />
+                            </div>
+                        </div>
+                    </Main>
+                </ScrollArticle>
+
+            }
+            else if (!hasFailed && isLoading)
+            {
+                <p>Caricamento in corso...</p>
+            }
+ 
+        </ScrollContainerY>
 }
 </div>
 <NuovaSegnalazioneModal Nuova="@Nuova" OnChiudi="ChiudiNuova" OnInvia="SegnalazioneInviata"/>
@@ -67,15 +138,18 @@ else
 @code {
     [CascadingParameter]
     public UserSessionService? UserSession { get; set; } = default!;
+
     private UtenzaDto? utenza;
     private SegnalazioniOperatoreDto[]? segnalazioni;
     private AzioneDashDto[]? azioni;
+    private RenderFragment[] Fragments = [];
 
     private string? errorMessage;
     private bool attive = false;
     private bool aperte = false;
     private bool isLoading = true;
     private bool segnalazioneInviata;
+    private bool hasFailed;
     public bool Nuova;
 
     protected override async Task OnInitializedAsync()
@@ -93,21 +167,20 @@ else
 
             var client = HttpClientFactory.CreateClient("api_test1");
 
-            using var utenzaResponse = await AuthedHttp.SendAsync(
-                client,
-                HttpMethod.Get,
-                uri
-            );
-            Log.Debug("Utenza HTTP Status: {StatusCode}", utenzaResponse.StatusCode);
-            utenzaResponse.EnsureSuccessStatusCode();
+            // using var utenzaResponse = await AuthedHttp.SendAsync(
+            //     client,
+            //     HttpMethod.Get,
+            //     uri
+            // );
+            // Log.Debug("Utenza HTTP Status: {StatusCode}", utenzaResponse.StatusCode);
+            // utenzaResponse.EnsureSuccessStatusCode();
 
-            utenza = await utenzaResponse.Content.ReadFromJsonAsync<UtenzaDto>();
+            // utenza = await utenzaResponse.Content.ReadFromJsonAsync<UtenzaDto>();
 
             //creare uno string builder programmatico e togliere sta merdaccia hardcoded così se le url query crescono sto schifo non cresce
             var uriSegnalazioni = uri+"/segnalazioni?dash=true"+(!aperte?"&aperte=true":"")+(attive?"&attive=true":"");
             //creare uno string builder programmatico e togliere sta merdaccia hardcoded così se le url query crescono sto schifo non cresce
 
-            // Log.Debug("uri: {uri}",uriSegnalazioni);
             using var segnalazioniResponse = await AuthedHttp.SendAsync(
                 client,
                 HttpMethod.Get,
@@ -133,14 +206,17 @@ else
         }
         catch (HttpRequestException ex)
         {
+            hasFailed = true;
             errorMessage = $"Errore durante il recupero dei dati: {ex.Message}";
         }
         catch (UnauthorizedAccessException)
         {
+            hasFailed = true;
             errorMessage = "Accesso alla risorsa non autorizzato";
         }
         catch (Exception ex)
         {
+            hasFailed = true;
             errorMessage = "Si è verificato un errore durante il caricamento dei dati.";
             Log.Debug("{message}",ex.Message);
         }

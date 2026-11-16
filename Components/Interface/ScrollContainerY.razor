@@ -1,0 +1,35 @@
+@inject IJSRuntime JS
+<section @ref="SectionTop" class="scroll-container-y @Classes">
+    @ChildContent
+
+    @if (IsYScrollable)
+    {        
+        <ButtonScrollToTop ScrollTarget="SectionTop"/>
+    }
+</section>
+
+@code{
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+    [Parameter]
+    public string Classes { get; set; } = string.Empty;
+
+    public ElementReference SectionTop { get; set; }
+
+    private bool IsYScrollable;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        var isScrollable = await JS.InvokeAsync<bool>(
+            "isElementYScrollable",
+            SectionTop
+            );
+
+        if (IsYScrollable != isScrollable)
+        {
+            IsYScrollable = isScrollable;
+            StateHasChanged();
+        }
+    }
+
+}
