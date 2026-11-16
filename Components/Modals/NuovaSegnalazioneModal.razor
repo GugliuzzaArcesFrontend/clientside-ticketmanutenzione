@@ -4,47 +4,55 @@
 
 @if (Nuova)
 {
-    <div class="modal-backdrop" @onclick="Chiudi">
-        <dialog @onclick:stopPropagation open >
+    <ModalBackdrop @onclick="Chiudi">
+        <ModalPiece @onclick:stopPropagation >
             @if(!elaborazione)
             {
             <h3>NuovaSegnalazioneModal</h3>
             <EditForm 
+                class="d-flex flex-column"
                 Model="@segnalazioneModel" 
                 OnValidSubmit="InviaSegnalazione"
                 Context="segnalazioneContext"
             >
                 <DataAnnotationsValidator/>
                 <ValidationSummary/>
-                    
-                <label for="luogo">Luogo</label>
-                <InputText id="luogo"@bind-Value="segnalazioneModel.Luogo"/>
+                
+                <div class="d-flex flex-row justify-content-between m-2">
+                    <label for="luogo">Luogo</label>
+                    <InputText id="luogo"@bind-Value="segnalazioneModel.Luogo"/>
+                </div>
+
+                <div class="d-flex flex-row justify-content-between m-2">
                 <label for="descrizione">Descrizione</label>
                 <InputText id="" @bind-Value="segnalazioneModel.Descrizione"/>
+                </div>
+                
+                <div class="d-flex flex-row justify-content-between m-2">
+                    <label for="tipologia">Indica tipologia</label>
+                    <InputSelect required id="tipologia" @bind-Value="segnalazioneModel.IdTipologia">
+                        <option disabled selected hidden value="0">
+                            Scegli tipologia
+                        </option>
+                        <option value="1">
+                            Idraulico 
+                        </option>
+                        <option value="2">
+                            Elettrico
+                        </option>
+                        <option value="3">
+                            Fognario
+                        </option>
+                        <option value="4">
+                            Gas
+                        </option>
+                        <option value="5">
+                            Linee dati
+                        </option>
+                    </InputSelect>
+               </div> 
 
-                <label for="tipologia">Indica tipologia</label>
-                <InputSelect required id="tipologia" @bind-Value="segnalazioneModel.IdTipologia">
-                    <option disabled selected hidden value="0">
-                        Scegli tipologia
-                    </option>
-                    <option value="1">
-                        Idraulico 
-                    </option>
-                    <option value="2">
-                        Elettrico
-                    </option>
-                    <option value="3">
-                        Fognario
-                    </option>
-                    <option value="4">
-                        Gas
-                    </option>
-                    <option value="5">
-                        Linee dati
-                    </option>
-                </InputSelect>
-
-                <div>
+                <div class="d-flex flex-row justify-content-between m-2">
                     <button type="submit" 
                         disabled="@(!segnalazioneContext.Validate())"
                         >Invia nuova segnalazione</button>
@@ -56,8 +64,8 @@
             {            
                     <p>Invio in corso</p>            
             }
-        </dialog>
-    </div>
+        </ModalPiece>
+    </ModalBackdrop>
 }
 @code {
     [Parameter]

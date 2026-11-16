@@ -1,0 +1,10 @@
+﻿<dialog open @attributes="Attribs">
+    @ChildContent
+</dialog>
+
+@code {
+    [Parameter(CaptureUnmatchedValues =true)]
+    public Dictionary<string,object>? Attribs { get; set; }
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

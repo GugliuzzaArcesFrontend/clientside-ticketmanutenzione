@@ -27,9 +27,16 @@
                     <td>@segnalazione.Descrizione</td>
                     <td>@segnalazione.Luogo</td>
                     <td>@segnalazione.Tipologia</td>
-                    @* @if (segnalazione.) *@
+                    
                     <td @onclick:stopPropagation>
-                        <button class="btn btn-@(segnalazione.AzioniAttive?"success":"warning")">
+                        <button 
+                            class="btn btn-@(segnalazione.AzioniAttive?"success":"warning")"
+                            @onclick="@(e=>
+                            {
+                                if (segnalazione.AzioniAttive) {VediAzione(segnalazione.IdAzioneAttiva??0);}
+                                else {CreaAzione(segnalazione.Id);}
+                            })"
+                        >
                             @(segnalazione.AzioniAttive ? "Vedi azione" : "Crea nuova")
                         </button>
                     </td>
@@ -43,17 +50,59 @@
     </tbody>
 </table>
 
-<SegnalazioneModal IdSegnalazione = "@idSegnalazione"  OnChiudi="ChiudiDettagli"/>
+<SegnalazioneModal 
+    IdSegnalazione = "@idSegnalazione" 
+    SegnalazioneAperta="SegnalazioneAperta" 
+    OnChiudiDettagli="ChiudiDettagli"/>
+
+<CreaAzioneModal 
+    IdSegnalazione="@idSegnalazione" 
+    AzioneNuova="AzioneNuova" 
+    OnChiudiAzione="ChiudiAzione"/>
+
+<VediAzioneModal 
+    IdAzione="@(idAzione??0)" 
+    AzioneAperta="AzioneAperta" 
+    OnChiudiAzione="ChiudiAzione"/>
+
 @code {
-    private int idSegnalazione;
     [Parameter]
     public SegnalazioniOperatoreDto[]? Segnalazioni { get; set; }
+
+    private int idSegnalazione;
+    private int? idAzione;
+
+    public bool AzioneNuova { get; set; }
+    public bool AzioneAperta { get; set; }
+    public bool SegnalazioneAperta { get; set; }
+
+    private void CreaAzione(int idSeg)
+    {
+        idSegnalazione = idSeg;
+        AzioneNuova = true;
+        Console.WriteLine("Dovrebbe aprire il modal CreaAzione");
+    }
+    public void VediAzione(int idAz)
+    {
+        AzioneAperta = true;
+        idAzione = idAz;
+        Console.WriteLine("Dovrebbe aprire il modal VediAzione");
+    }
+    private void ChiudiAzione()
+    {
+        idSegnalazione = 0;
+        idAzione = 0;
+        AzioneNuova = false;
+        AzioneAperta = false;
+    }
     private void ApriDettagli(int id)
     {
         idSegnalazione = id;
+        SegnalazioneAperta = true;
     }
     private void ChiudiDettagli()
     {
         idSegnalazione = 0;
+        SegnalazioneAperta = false;
     }
 }

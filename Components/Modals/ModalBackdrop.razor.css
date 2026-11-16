@@ -1,0 +1,32 @@
+/* CSS for ModalBackdrop component */
+.modal-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    display:flex;
+    z-index: 1050;
+    width: 100vw;
+    height: 100vh;
+    background-color: #5559;
+}
+/*
+    .modal-backdrop.fade {
+        opacity: 0;
+    }
+
+    .modal-backdrop.show {
+        opacity: 0.25;
+    }*/
+
+.modal-backdrop dialog {
+    position: relative;
+    margin: 0;
+    padding: 1.5rem;
+    width: min(500px, 90vw);
+    max-height: 90vh;
+    overflow-y: auto;
+    border: none;
+    border-radius: 8px;
+    background-color: white;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.25);
+}

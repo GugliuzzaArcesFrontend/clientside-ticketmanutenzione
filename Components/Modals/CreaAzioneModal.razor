@@ -1,9 +1,138 @@
-﻿
+﻿@inject AuthenticatedHttpService AuthedHttp
+@inject IHttpClientFactory HttpClientFactory
+
+@if (AzioneNuova)
+{
+    <ModalBackdrop  @onclick="Chiudi">
+        <ModalPiece @onclick:stopPropagation>
+            @if (!elaborazione)
+            {
+                <h3>NuovaAzioneModal</h3>
+                <EditForm Model="@azioneModel"
+                          OnValidSubmit="InviaAzione"
+                        class="d-flex flex-column justify-content-"          
+                >
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="d-flex flex-row justify-content-between">
+                        <label for="azione">Nome azione</label>
+                        <InputText id="azione" @bind-Value="azioneModel.NomeAzione" />
+                    </div>
+                    
+                    <div class="d-flex flex-row justify-content-between">
+                        <label for="descrizione">Descrizione</label>
+                        <InputText id="descrizione" @bind-Value="azioneModel.Descrizione" />
+                    </div>
+                    
+                    @* 
+                        creare un selettore con filtro 
+                        per scegliere un tot di operatori 
+                        per eventuale assegnazione durante creazione 
+                    *@
+                    
+                    <div class="d-flex justify-content-between">
+                        <button type="submit"
+                                disabled="@(!context.Validate())">
+                            Invia nuova azione
+                        </button>
+                        <button @onclick="Chiudi">Chiudi</button>
+                    </div>
+                </EditForm>
+            }
+            else
+            {
+                <p>Invio in corso</p>
+            }
+        </ModalPiece>
+    </ModalBackdrop>
+}
 
 
 @code {
+    [CascadingParameter]
+    public UserSessionService? UserSession { get; set; }
     [Parameter]
-    public AzioneDashDto? Azione { get; set; }
+    public bool AzioneNuova { get; set; }
+    [Parameter]
+    public int IdSegnalazione { get; set; }
 
-    
+    public Azione azioneModel = new();
+
+
+    [Parameter]
+    public EventCallback OnChiudiAzione { get; set; }
+    [Parameter]
+    public EventCallback OnInviaAzione { get; set; }
+
+
+    private bool elaborazione;
+    private string? errorMessage;
+
+
+    private async Task InviaAzione()
+    {
+        try
+        {
+            var client = HttpClientFactory.CreateClient("api_test1");
+            var uId = UserSession?.UserId;
+            var uri = $"utenze/{uId}/azioni";
+            if (int.TryParse(uId, out var parsedId))
+            {
+                elaborazione = true;
+                azioneModel.IdSegnalazione = IdSegnalazione;
+                azioneModel.IdStato = 1;
+                azioneModel.DataAzione = DateOnly.FromDateTime(DateTime.Today);
+                Log.Debug("{@dto}", azioneModel);
+                using var response = await AuthedHttp.SendAsync(
+                    client, HttpMethod.Post, uri, azioneModel
+                );
+                var responseBody = await response.Content.ReadAsStringAsync();
+                Log.Debug("HTTP Status: {StatusCode}", response.StatusCode);
+                Log.Debug("HTTP Response: {ResponseBody}", responseBody);
+                response.EnsureSuccessStatusCode();
+                // if (!response.IsSuccessStatusCode)
+                // {
+                //     Console.WriteLine($"Errore HTTP {(int)response.StatusCode}: {responseBody}");
+                //     return;
+                // }
+                StateHasChanged();
+                elaborazione = false;
+                await Inviata();
+                azioneModel = new();
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            Log.Debug("Caso request {@dto}", azioneModel);
+            errorMessage = $"Errore durante l'invio dei dati: {ex.Message}";
+        }
+        catch (UnauthorizedAccessException)
+        {
+            Log.Debug("Caso unauthorized {@dto}", azioneModel);
+            errorMessage = "Accesso alla risorsa non autorizzato";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Si è verificato un errore durante il caricamento dei dati.";
+            Log.Debug("{message}", ex.Message);
+        }
+        finally
+        {
+            // await Chiudi();
+        }
+
+    }
+    private async Task Chiudi()
+    {
+        if (OnChiudiAzione.HasDelegate)
+        {
+            azioneModel = new();
+            await OnChiudiAzione.InvokeAsync();
+        }
+    }
+    private async Task Inviata()
+    {
+        if (OnInviaAzione.HasDelegate) await OnInviaAzione.InvokeAsync();
+    }
 }

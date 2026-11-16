@@ -15,5 +15,6 @@ public class SegnalazioniOperatoreDto
     public string Tipologia { get; set; } = string.Empty;
 
     public bool AzioniAttive {  get; set; }
+    public int? IdAzioneAttiva { get; set; }
 
 }

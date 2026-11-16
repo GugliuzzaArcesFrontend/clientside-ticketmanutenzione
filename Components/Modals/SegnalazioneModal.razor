@@ -1,14 +1,16 @@
 ﻿@inject AuthenticatedHttpService AuthedHttp
 @inject AuthenticationStateProvider AuthenticationState
 
-@if (segnalazione is not null)
+@if (segnalazione is not null && SegnalazioneAperta)
 {
-    <div class="modal-backdrop  m-auto" @onclick="Chiudi">
-    <dialog class="m-auto" open @onclick:stopPropagation>
-        <p>@segnalazione.Id</p>
-        <p>@segnalazione.Luogo</p>
-        <p>@segnalazione.DataSegnalazione</p>
-        <p>@segnalazione.Descrizione</p>
+    <ModalBackdrop @onclick="Chiudi">
+    <ModalPiece @onclick:stopPropagation>
+        <p>Id segnalazione: @segnalazione.Id</p>
+        <p>Luogo: @segnalazione.Luogo</p>
+        <p>Data Apertura: @segnalazione.DataSegnalazione</p>        
+        <p>Descrizione segnalazione: @segnalazione.Descrizione</p>
+
+
         @* 
             creare un dto per servire la segnalazione in dettaglio (completa di azioni e allegati)
             modificare il modal per permettere archiviazione/eliminazione o chiusura con successo segnalazione
@@ -17,8 +19,8 @@
         *@
 
         <button @onclick="Chiudi">Chiudi</button>
-    </dialog>
-</div>
+    </ModalPiece>
+</ModalBackdrop>
 }
 
 @code {
@@ -26,9 +28,11 @@
     public UserSessionService? UserSession { get; set; } = default!;
     [Parameter]
     public int IdSegnalazione { get; set; }
+    [Parameter]
+    public bool SegnalazioneAperta { get; set; }
 
     [Parameter]
-    public EventCallback OnChiudi { get; set; }
+    public EventCallback OnChiudiDettagli { get; set; }
 
     private SegnalazioniOperatoreDto? segnalazione;
 
@@ -65,9 +69,9 @@
     }
     private async Task Chiudi()
     {
-        if (OnChiudi.HasDelegate)
+        if (OnChiudiDettagli.HasDelegate)
         {
-            await OnChiudi.InvokeAsync();
+            await OnChiudiDettagli.InvokeAsync();
         }
     }
 }

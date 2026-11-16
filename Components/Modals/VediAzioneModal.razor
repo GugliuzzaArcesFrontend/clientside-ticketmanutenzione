@@ -1,0 +1,84 @@
+@inject AuthenticatedHttpService AuthedHttp
+@inject IHttpClientFactory HttpClientFactory
+
+@if (AzioneAperta && azione is not null)
+{
+    <ModalBackdrop @onclick="Chiudi">
+        <ModalPiece @onclick:stopPropagation >
+            @if (azione is not null)
+            {
+                @* @foreach (var azione in azioni)
+                {                     *@
+                    <div>
+                        <p>Data di apertura @azione.DataAzione</p>
+                        <p>Nome azione: @azione.NomeAzione</p>
+                        <p>Descrizione: @azione.Descrizione</p>
+                        @* <p>Stato: @azione.Stato.NomeStato</p> *@
+                    </div>
+                @* } *@
+            }
+        </ModalPiece> 
+    </ModalBackdrop>
+}
+
+@code{
+    [CascadingParameter]
+    public UserSessionService? UserSession { get; set; }
+    [Parameter]
+    public bool AzioneAperta { get; set; }
+    [Parameter]
+    public int IdAzione { get; set; }
+
+    private Azione? azione;
+
+    [Parameter]
+    public EventCallback OnChiudiAzione { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (IdAzione != 0)
+        {
+
+            try
+            {
+                var userId = UserSession?.UserId;
+                var client = HttpClientFactory.CreateClient("api_test1");
+                if (int.TryParse(userId, out var parsed))
+                {
+                    var uri = $"utenze/{userId}/azioni/{IdAzione}";
+                    azione = await (await AuthedHttp.SendAsync(
+                        client,
+                        HttpMethod.Get,
+                        uri
+                    )).Content.ReadFromJsonAsync<Azione>();
+
+                    Log.Debug("Modal azione, {@azione}", azione);
+                }
+
+
+            }
+            catch (HttpRequestException ex)
+            {
+                Log.Debug("Caso request {@dto}", azione);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                Log.Debug("Caso unauthorized {@dto}", azione);
+            }
+            catch (Exception ex)
+            {
+                Log.Debug("{message}", ex.Message);
+            }
+
+        }
+
+    }
+
+    private async Task Chiudi()
+    {
+        if (OnChiudiAzione.HasDelegate)
+        {
+           await OnChiudiAzione.InvokeAsync();
+        }
+    }
+}

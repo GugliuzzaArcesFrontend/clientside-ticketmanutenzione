@@ -1,0 +1,12 @@
+/* CSS for ModalPiece component */
+dialog {
+    position: relative;
+    margin: auto;
+    padding: 1.5rem;
+    width: min(500px, 90vw);
+    max-height: 90vh;
+    overflow-y: auto;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.25);
+}
