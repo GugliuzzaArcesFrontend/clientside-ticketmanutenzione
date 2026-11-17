@@ -5,7 +5,7 @@
 @* <h3>Login</h3> *@
 @if (!isLoading)
 {
-    <div >
+    <div class="d-flex col-6 flex-column ">
         <EditForm 
             Model="@loginModel" 
             OnValidSubmit="HandleLogin"
@@ -17,23 +17,30 @@
             {
                 <p class="text-danger">@errorMessage</p>
             } *@
-            <br/>
-            <label for="email">E-Mail</label>
-            <InputText id="email" @bind-Value="loginModel.Email" />
-            <ValidationMessage For="@(()=>loginModel.Email)" />
-            <br/>
-            <label for="password">Password</label>
-            <InputText id="password" type="password" @bind-Value="loginModel.Password"/>
-            <ValidationMessage For="@(()=>loginModel.Password)"/>
-    
-            <button 
-                type="submit"
-                disabled="@(!loginContext.Validate())"
-                >
-                Accedi
-            </button>
+            <div class="d-flex flex-row justify-content-between m-2">
+                
+                <label for="email">E-Mail</label>
+                <InputText class="ps-2" id="email" @bind-Value="loginModel.Email" />
+            </div>
+            
+            <div class="d-flex flex-row justify-content-between m-2">
+                
+                <label for="password">Password</label>
+                <InputText class="ps-2" id="password" type="password" @bind-Value="loginModel.Password"/>
+            </div>
+            
+            <div class="d-flex align-self-center justify-content-around mx-auto">
+                <CustomButtonSm
+                    Classes="align-self-center"
+                    type="submit"
+                    disabled="@(!loginContext.Validate())"
+                    >
+                    Accedi
+                </CustomButtonSm>
+            </div>
         </EditForm>
     </div>
+
     @if (errorMessage is not null)
     {
         <p class="text-danger">@errorMessage </p>
@@ -52,7 +59,7 @@ else
 
     private async Task HandleLogin()
     {
-        bool success=false;
+        var success=false;
         try
         {
             isLoading = true;

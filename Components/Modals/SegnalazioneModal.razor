@@ -4,23 +4,24 @@
 @if (segnalazione is not null && SegnalazioneAperta)
 {
     <ModalBackdrop @onclick="Chiudi">
-    <ModalPiece @onclick:stopPropagation>
-        <p>Id segnalazione: @segnalazione.Id</p>
-        <p>Luogo: @segnalazione.Luogo</p>
-        <p>Data Apertura: @segnalazione.DataSegnalazione</p>        
-        <p>Descrizione segnalazione: @segnalazione.Descrizione</p>
+        <ModalPiece class="d-flex flex-column " @onclick:stopPropagation>
+            <p>Id segnalazione: @segnalazione.Id</p>
+            <p>Luogo: @segnalazione.Luogo</p>
+            <p>Data Apertura: @segnalazione.DataSegnalazione</p>        
+            <p>Descrizione segnalazione: @segnalazione.Descrizione</p>
 
 
-        @* 
-            creare un dto per servire la segnalazione in dettaglio (completa di azioni e allegati)
-            modificare il modal per permettere archiviazione/eliminazione o chiusura con successo segnalazione
-            creare qui in template i for di azioni e allegati corrispondenti 
-            creare bottone aggiungi azione e aggiungi allegato
-        *@
-
-        <button @onclick="Chiudi">Chiudi</button>
-    </ModalPiece>
-</ModalBackdrop>
+            @* 
+                creare un dto per servire la segnalazione in dettaglio (completa di azioni e allegati)
+                modificare il modal per permettere archiviazione/eliminazione o chiusura con successo segnalazione
+                creare qui in template i for di azioni e allegati corrispondenti 
+                creare bottone aggiungi azione e aggiungi allegato
+            *@
+            <div class="ms-auto">
+                <CustomButtonSm Classes="btn-danger" @onclick="Chiudi">Chiudi</CustomButtonSm>
+            </div>
+        </ModalPiece>
+    </ModalBackdrop>
 }
 
 @code {
@@ -31,10 +32,10 @@
     [Parameter]
     public bool SegnalazioneAperta { get; set; }
 
+    private SegnalazioniOperatoreDto? segnalazione;
+    
     [Parameter]
     public EventCallback OnChiudiDettagli { get; set; }
-
-    private SegnalazioniOperatoreDto? segnalazione;
 
     protected override async Task OnParametersSetAsync()
     {

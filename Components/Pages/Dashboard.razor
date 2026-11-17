@@ -20,7 +20,7 @@ else
 
     @if (!segnalazioneInviata)
     {
-        <button class="btn btn-primary" @onclick="ApriNuova">Nuova segnalazione </button>
+        <CustomButtonSm @onclick="ApriNuova">Nuova segnalazione </CustomButtonSm>
     }
     else
     {
@@ -100,6 +100,7 @@ else
                         </div>
                     </Main>
                 </ScrollArticle>
+
                 <ScrollArticle>
                     <Main>
                         <div class="d-flex flex-row scrollpointstart ">

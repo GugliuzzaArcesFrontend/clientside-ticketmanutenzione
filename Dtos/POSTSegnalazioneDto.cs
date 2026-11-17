@@ -13,6 +13,7 @@ namespace clientside_ticketmanutenzione.Dtos
 
         //public DateOnly Data { get; set; } = DateOnly.FromDateTime(DateTime.Now);
         [Required]
+        [Range(1,5, ErrorMessage = "Selezionare una tipologia")]
         public virtual int IdTipologia { get; set; }            //tipo di segnalazione
         [Required]
         public string Descrizione { get; set; } = string.Empty; //Descrizione della segnalazione. può anche essere anche vuota

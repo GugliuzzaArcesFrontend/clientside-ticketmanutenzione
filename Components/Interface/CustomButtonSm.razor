@@ -1,0 +1,34 @@
+﻿<button class="btn btn-sm border @(!hasButtonColor?"btn-primary":"") @Classes" @attributes="Attribs">
+    @ChildContent
+</button>
+
+@code {
+    [Parameter(CaptureUnmatchedValues =true)]
+    public Dictionary<string,object>? Attribs { get; set; }
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+    [Parameter]
+    public string Classes { get; set; } = string.Empty;
+
+    private bool hasButtonColor;
+    
+    private static readonly string[] BootstrapButtonColors =
+    {
+        "btn-primary",
+        "btn-secondary",
+        "btn-success",
+        "btn-danger",
+        "btn-warning",
+        "btn-info",
+        "btn-light",
+        "btn-dark",
+        "btn-link"
+    };
+
+    private void colorCheck()
+    {
+        hasButtonColor = Classes
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Any(c => BootstrapButtonColors.Contains(c));
+    }
+}

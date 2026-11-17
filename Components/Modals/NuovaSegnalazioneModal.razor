@@ -5,7 +5,7 @@
 @if (Nuova)
 {
     <ModalBackdrop @onclick="Chiudi">
-        <ModalPiece @onclick:stopPropagation >
+        <ModalPiece>
             @if(!elaborazione)
             {
             <h3>NuovaSegnalazioneModal</h3>
@@ -50,19 +50,19 @@
                             Linee dati
                         </option>
                     </InputSelect>
-               </div> 
+                </div> 
 
                 <div class="d-flex flex-row justify-content-between m-2">
-                    <button type="submit" 
+                    <CustomButtonSm type="submit" 
                         disabled="@(!segnalazioneContext.Validate())"
-                        >Invia nuova segnalazione</button>
-                    <button @onclick="Chiudi">Chiudi</button>
+                        >Invia nuova segnalazione</CustomButtonSm>
+                    <CustomButtonSm Classes="btn-danger" @onclick="Chiudi">Chiudi</CustomButtonSm>
                 </div>
             </EditForm>
             }
             else
             {            
-                    <p>Invio in corso</p>            
+                <p>Invio in corso</p>            
             }
         </ModalPiece>
     </ModalBackdrop>
@@ -79,7 +79,7 @@
     private int parsedId;
     private string? errorMessage;
     private POSTSegnalazioneDto segnalazioneModel = new();
-    
+
 
     private async Task InviaSegnalazione()
     {
@@ -119,6 +119,10 @@
         {
             errorMessage = "Si è verificato un errore durante il caricamento dei dati.";
             Log.Debug("{message}", ex.Message);
+        }
+        finally
+        {
+            elaborazione = false;
         }
 
     }

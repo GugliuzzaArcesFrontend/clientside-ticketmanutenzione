@@ -11,13 +11,15 @@
     <Header />
     <Sidebar isSidebarOpen="isSidebarOpen"/>
     
-    <main @ref="MainContainer"
-        class="overflow-auto d-flex h-100 w-100 justify-content-center align-items-center"
-        @onclick="CloseSide"
-    >
-        @Body
-    </main>
-    
+    <CascadingValue Value="MainContainer" IsFixed="false">
+        <main @ref="MainContainer"
+            class="overflow-auto d-flex h-100 w-100 justify-content-center align-items-center"
+            @onclick="CloseSide"
+        >
+            @Body
+        </main>
+    </CascadingValue>
+
     <Footer  />
 
 </CascadingValue>
@@ -100,7 +102,7 @@
             //     "themeManager.setTheme",
             //     ComponentsHandling.Theme.ToString()
             // );
-
+            StateHasChanged();
             var savedTheme = await JS.InvokeAsync<string>(
                         "themeManager.initialize",
                         ComponentsHandling.SelectedTheme.ToString()

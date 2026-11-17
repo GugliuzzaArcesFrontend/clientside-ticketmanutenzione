@@ -1,0 +1,7 @@
+/* CSS for ScrollArticle component */
+.scroll-point-start {
+    flex: 0 0 100%;
+    height: auto;
+    width: auto;
+    scroll-snap-align: start;
+}

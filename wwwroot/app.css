@@ -47,21 +47,13 @@ h1:focus {
 html, body {
     height: 100vh;
 }
-.scrollcontainerx{
+.scroll-container-x {
     scroll-snap-type: x mandatory;
-}
-.scroll-container-y {
-    height: 100%;
-    overflow-y: auto;
+    width: 100%;
+    overflow-x: auto;
     display: flex;
-    flex-direction: column;
-    scroll-snap-type: y mandatory;
+    flex-direction: row;
 }
-/*.scroll-container-y > * {
-    flex: 0 0 100%;
-    min-height: 100%;
-    scroll-snap-align: start;
-}*/
 .scrollpointstart {
     flex: 0 0 100%;
     height: auto;

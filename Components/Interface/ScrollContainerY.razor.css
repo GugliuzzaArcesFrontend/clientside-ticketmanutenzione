@@ -1,0 +1,7 @@
+.scroll-container-y {
+    height: 100%;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    scroll-snap-type: y mandatory;
+}

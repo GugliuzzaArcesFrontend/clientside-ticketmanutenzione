@@ -1,4 +1,4 @@
-﻿<article class="scrollpointstart">
+﻿<article class="scroll-point-start" @attributes="Attribs">
     @Head
     @Main
     @End
@@ -9,5 +9,7 @@
     [Parameter]
     public RenderFragment? Main { get; set; }
     [Parameter]
-    public RenderFragment? End { get; set; }    
+    public RenderFragment? End { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string,object>? Attribs { get; set; }
 }

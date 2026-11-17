@@ -1,5 +1,5 @@
 ﻿@* <h3>TabellaSegnalazioni</h3> *@
-<table class="custom-table">
+<table class="custom-table mt-1 pt-1">
     <thead>
         <tr>
             <th>#</th>
@@ -29,8 +29,9 @@
                     <td>@segnalazione.Tipologia</td>
                     
                     <td @onclick:stopPropagation>
-                        <button 
-                            class="btn btn-@(segnalazione.AzioniAttive?"success":"warning")"
+                        <CustomButtonSm 
+                            
+                            Classes="@(segnalazione.AzioniAttive?"btn-success":"btn-warning")"
                             @onclick="@(e=>
                             {
                                 if (segnalazione.AzioniAttive) {VediAzione(segnalazione.IdAzioneAttiva??0);}
@@ -38,10 +39,10 @@
                             })"
                         >
                             @(segnalazione.AzioniAttive ? "Vedi azione" : "Crea nuova")
-                        </button>
+                        </CustomButtonSm>
                     </td>
                     <td>
-                        <button class="btn btn-primary" @onclick="() => ApriDettagli(segnalazione.Id)">Dettagli</button>
+                        <CustomButtonSm @onclick="() => ApriDettagli(segnalazione.Id)">Dettagli</CustomButtonSm>
                     </td>
                 </tr>
                 {i++;}
@@ -76,6 +77,8 @@
     public bool AzioneAperta { get; set; }
     public bool SegnalazioneAperta { get; set; }
 
+
+
     private void CreaAzione(int idSeg)
     {
         idSegnalazione = idSeg;
@@ -94,6 +97,7 @@
         idAzione = 0;
         AzioneNuova = false;
         AzioneAperta = false;
+        StateHasChanged();
     }
     private void ApriDettagli(int id)
     {

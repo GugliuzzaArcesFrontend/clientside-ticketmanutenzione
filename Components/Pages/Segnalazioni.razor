@@ -1,61 +1,60 @@
 ﻿@page "/segnalazioni"
 
+
 @inject AuthenticatedHttpService AuthedHttp
 @inject IHttpClientFactory HttpClientFactory
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 
-<section class="h-100">
-    @* <div @ref="SectionTop"></div> *@
-    <div @ref="SectionTop" class="h-100">
+<section class="w-100 h-100">
     @if (UserSession.IsAuthenticated)
     {
         <NavLink  href="/">Torna alla main page</NavLink>
         <br>
         <div >
-            @* <button @onclick="ApriNuova" class="btn btn-primary">Nuova segnalazione</button> *@
-        @if (segnalazioni is not null && isLoading)
-        {
-            @if (!segnalazioneInviata)
+            
+            @if (segnalazioni is not null && isLoading)
             {
-                <button class="btn btn-primary text-info" @onclick="ApriNuova">Nuova segnalazione </button>
+                @if (!segnalazioneInviata)
+                {
+                    <CustomButtonSm  @onclick="ApriNuova">Nuova segnalazione </CustomButtonSm>
+                }
+                else
+                {
+                    <p class="text-success">Segnalazione inviata con successo</p>
+                }        
+                <TabellaSegnalazioni Segnalazioni="segnalazioni"/>
             }
-            else
+            else if (hasFailed)
             {
-                <p class="text-success">Segnalazione inviata con successo</p>
+                <CustomButtonSm @onclick="()=>Navigation.Refresh(forceReload:true)">Ricarica pagina</CustomButtonSm>
             }
-        
-            <TabellaSegnalazioni Segnalazioni="segnalazioni"/>
-        }
-        else if (hasFailed)
-        {
-            <button @onclick="()=>Navigation.Refresh(forceReload:true)">Ricarica pagina</button>
-        }
-        @if (errorMessage is not null)
-        {
-            <p>@errorMessage</p>       
-        }
+            @if (errorMessage is not null)
+            {
+                <p>@errorMessage</p>       
+            }
         </div>
 
     }
     else
     {
-        <p>Pagina ristretta ai non autorizzati. Per favore accedere</p>
-        <Login/>
+        <div class="d-flex flex-column w-100 h-100 m-auto align-items-center justify-content-center ">
+            <p class="mb-3">Pagina ristretta ai non autorizzati. Per favore accedere</p>
+
+            <Login/>
+        </div>
     }
     @if (IsYScrollable)
     {
-        <ButtonScrollToTop ScrollTarget="SectionTop" />
+        <ButtonScrollToTop ScrollTarget="MainContainer" />
     }
-    </div>
 </section>
 <NuovaSegnalazioneModal Nuova="@Nuova" OnChiudi="ChiudiNuova" OnInvia="SegnalazioneInviata" />
 @code {
     [CascadingParameter]
     public UserSessionService UserSession { get; set; } = default!;
-
-    [Parameter, EditorRequired]
-    public ElementReference SectionTop  { get; set; }
+    [CascadingParameter]
+    public ElementReference MainContainer { get; set; }
 
     private SegnalazioniOperatoreDto[]? segnalazioni;
 
@@ -71,12 +70,23 @@
 
     public bool Nuova=false;
 
+
+    //metodi su licecycle
+    protected override async Task OnInitializedAsync()
+    {
+        await CaricaSegnalazioni();
+    }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        await CheckScrollable();
+    }
+
+    private async Task CheckScrollable()
+    {
         var isScrollable = await JS.InvokeAsync<bool>(
-           "isElementYScrollable",
-           SectionTop
-       );
+            "isElementYScrollable",
+            MainContainer
+        );
 
         if (IsYScrollable != isScrollable)
         {
@@ -85,10 +95,7 @@
         }
     }
 
-    protected override async Task OnInitializedAsync()
-    {
-        await CaricaSegnalazioni();
-    }
+    //fetch dati
     private async Task CaricaSegnalazioni()
     {
         try
@@ -119,6 +126,7 @@
         }
     }
 
+    //handling flag modali
     private void ApriNuova()
     {
 
