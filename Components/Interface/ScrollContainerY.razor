@@ -1,8 +1,8 @@
 @inject IJSRuntime JS
-<section @ref="SectionTop" class="scroll-container-y @Classes">
+<section @ref="SectionTop" class="scroll-container-y @Classes" style="height:@($"{SectionHeight ?? 100}%")">
     @ChildContent
 
-    @if (IsYScrollable)
+    @if (isYScrollable)
     {        
         <ButtonScrollToTop ScrollTarget="SectionTop"/>
     }
@@ -11,12 +11,16 @@
 @code{
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
+
     [Parameter]
     public string Classes { get; set; } = string.Empty;
+    
+    [Parameter]
+    public int? SectionHeight { get; set; }
 
     public ElementReference SectionTop { get; set; }
 
-    private bool IsYScrollable;
+    private bool isYScrollable;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -25,9 +29,9 @@
             SectionTop
             );
 
-        if (IsYScrollable != isScrollable)
+        if (isYScrollable != isScrollable)
         {
-            IsYScrollable = isScrollable;
+            isYScrollable = isScrollable;
             StateHasChanged();
         }
     }

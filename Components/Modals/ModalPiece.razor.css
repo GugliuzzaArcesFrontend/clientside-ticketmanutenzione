@@ -3,7 +3,9 @@ dialog {
     position: relative;
     margin: auto;
     padding: 1.5rem;
-    width: min(500px, 90vw);
+    min-width: 33vw;
+    max-width: 75vw;
+    min-height: 33vh;
     max-height: 90vh;
     overflow-y: auto;
     border: none;

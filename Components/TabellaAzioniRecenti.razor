@@ -1,31 +1,84 @@
 ﻿<div>
     @if(Azioni is not null)
     {
-        <span>Azioni completate di recente</span>
-        <table>
-            <thead>
-                <tr>
-                    <th>
-                        Azione
-                    </th>
-                    <th>
-                        Segnalazione
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var azione in Azioni)
-                {
+        @if (Azioni.Length != 0)
+        {
+            <span>Azioni completate di recente</span>
+            <table>
+                <thead>
                     <tr>
-                        <td class="ms-2">@azione.Descrizione</td>
-                        <td>@azione.DescrizioneSegnalazione</td>
+                        <th>
+                            Azione
+                        </th>
+
+                        <th>
+                            Segnalazione
+                        </th>
+
+                        <th>
+                            Buon fine
+                        </th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach (var azione in Azioni)
+                    {
+                        <tr>
+                            <td class="ms-2" @onclick="() => ApriAzione(azione.Id)">@azione.Descrizione</td>
+                            <td class="ms-2" @onclick="() => ApriSegnalazione(azione.IdSegnalazione)" >@azione.DescrizioneSegnalazione</td>
+                            <td class="ms-2" >@(azione.IdStato==3?"Respinta":"") @(azione.IdStato==5?"":"") </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p>Non sono stati completati lavori negli ultimi 7 giorni</p>
+        }
     }
 </div>
+<SegnalazioneModal 
+    IdSegnalazione="@IdSegnalazione" 
+    SegnalazioneAperta="@SegnalazioneAperta"
+    OnChiudiDettagli="ChiudiSegnalazione"
+    />
+<VediAzioneModal
+    IdAzione="@(IdAzione)"
+    AzioneAperta="@AzioneAperta"
+    OnChiudiAzione="ChiudiAzione"
+    />
 @code {
     [Parameter]
     public AzioneDashDto[]? Azioni { get; set; } = default!;
+    [Parameter]
+    public int IdSegnalazione { get; set; }
+    [Parameter]
+    public int IdAzione { get; set; }
+
+
+    public bool AzioneAperta;
+    public bool SegnalazioneAperta;
+
+
+    private async Task ApriSegnalazione(int id)
+    {
+        IdSegnalazione = id;
+        SegnalazioneAperta = true;
+    }
+    private async Task ChiudiSegnalazione()
+    {
+        IdSegnalazione = 0;
+        SegnalazioneAperta = false;
+    }
+    private async Task ApriAzione(int id)
+    {
+        IdAzione = id;
+        AzioneAperta = true;
+    }
+    private async Task ChiudiAzione()
+    {
+        IdAzione = 0;
+        AzioneAperta = false;
+    }
 }

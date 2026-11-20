@@ -10,7 +10,7 @@
                 @* <h3>NuovaAzioneModal</h3> *@
                 <EditForm Model="@azioneModel"
                           OnValidSubmit="InviaAzione"
-                            class="d-flex flex-column justify-content-"          
+                            class="d-flex flex-column justify-content-between"          
                 >
                     <DataAnnotationsValidator />
                     <ValidationSummary />
@@ -117,10 +117,7 @@
             errorMessage = "Si è verificato un errore durante il caricamento dei dati.";
             Log.Debug("{message}", ex.Message);
         }
-        finally
-        {
-            // await Chiudi();
-        }
+        
 
     }
     private async Task Chiudi()

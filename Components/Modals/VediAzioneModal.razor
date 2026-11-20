@@ -1,24 +1,127 @@
 @inject AuthenticatedHttpService AuthedHttp
 @inject IHttpClientFactory HttpClientFactory
 
-@if (AzioneAperta && azione is not null)
+@if (AzioneAperta)
 {
-    <ModalBackdrop @onclick="Chiudi">
-        <ModalPiece @onclick:stopPropagation >
-            @if (azione is not null)
+        <ModalBackdrop @onclick="Chiudi">
+            <ModalPiece @onclick:stopPropagation >
+            @if (IdAzione!=0)
             {
-                @* @foreach (var azione in azioni)
-                {                     *@
-                    <div>
-                        <p>Data di apertura @azione.DataAzione</p>
-                        <p>Nome azione: @azione.NomeAzione</p>
-                        <p>Descrizione: @azione.Descrizione</p>
-                        @* <p>Stato: @azione.Stato.NomeStato</p> *@
+                @if (!elaborazione && azione is not null)
+                {
+                    <EditForm EditContext="@context"
+                        OnValidSubmit="()=>PutAzione()"
+                        class="d-flex flex-column justify-content-between"
+                    >
+                        <div>
+                            <p class="d-inline">Data di apertura:</p> <p class="d-inline float-end">@azione.DataAzione</p>
+                        </div>                        
+                        @if (azione.DataChiusura is not null && azione.DataModifica is not null)
+                        {
+                            <p class="d-inline">Data ultima modifica:</p><p class="d-inline float-end">@(azione.DataModifica)</p>
+                        }
+                        <p>Nome azione:</p><p>@azione.NomeAzione</p>
+                        @* <p>Descrizione: @azione.Descrizione</p> *@
+                        <div class="d-flex flex-row justify-content-between m-2">
+                            <label for="descrizione">Descrizione</label>
+                            <InputText id="descrizione" @bind-Value="azione.Descrizione" />
+                        </div>
+
+                        <p>Stato: @(
+                            azione.IdStato switch
+                            {
+                                1=>"Ricevuta",
+                                2=>"Accolta",
+                                3=>"Respinta",
+                                4=>"Elaborazione",
+                                _=>"Chiusa"
+                            }
+                        )</p>
+                        @* implementare logica ed interfaccia per fetchare, aggiungere, eliminare manutentori*@
+                    </EditForm>
+
+                    <div class="d-flex flex-row mt-auto justify-content-between">
+                        <CustomButtonSm 
+                            type="submit" 
+                            Classes="btn-primary"
+                        >
+                            Salva e invia a manutentori
+                        </CustomButtonSm>
+
+                        <CustomButtonSm 
+                            @onclick="()=>PutAzione(delete:true)" 
+                            Classes="btn-danger"
+                        >
+                            Elimina
+                        </CustomButtonSm>
+                        
+                        <CustomButtonSm 
+                            @onclick="()=>PutAzione(conclude:true)" 
+                            Classes="btn-success"
+                        >
+                            Segna come terminata
+                        </CustomButtonSm>
+                        
+                        <CustomButtonSm 
+                            @onclick="Chiudi" 
+                            Classes="btn-danger"
+                        >
+                            Chiudi
+                        </CustomButtonSm>
                     </div>
-                @* } *@
+                }
+                else if (elaborazione)
+                {
+                    <p class="text-info"></p>
+                }
+                else 
+                {
+                    @* logica, bottone e messaggio per ricarica*@
+                }
             }
-        </ModalPiece> 
-    </ModalBackdrop>
+            else
+            {
+                @if (!elaborazione && azione is not null)
+                {
+                    <EditForm Model="@dto"
+                              OnValidSubmit="PostAzione"
+                              class="d-flex flex-column justify-content-">
+
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <div class="d-flex flex-row justify-content-between m-2">
+                            <label for="azione">Nome azione</label>
+                            <InputText id="azione" @bind-Value="dto.NomeAzione" />
+                        </div>
+                    
+                        <div class="d-flex flex-row justify-content-between m-2">
+                            <label for="descrizione">Descrizione</label>
+                            <InputText id="descrizione" @bind-Value="dto.Descrizione" />
+                        </div>
+                    
+                        @* 
+                        creare un selettore con filtro 
+                        per scegliere un tot di manutentori
+                        per eventuale assegnazione manutentori durante creazione 
+                        *@
+                    
+                        <div class="d-flex justify-content-between">
+                            <CustomButtonSm type="submit"
+                                    disabled="@(!context.Validate())">
+                                Invia nuova azione
+                            </CustomButtonSm>
+                            <CustomButtonSm @onclick="Chiudi">Chiudi</CustomButtonSm>
+                        </div>
+                    </EditForm>
+                }
+                else
+                {
+                    <p>Invio in corso</p>
+                }
+            }
+            </ModalPiece>
+        </ModalBackdrop>
 }
 
 @code{
@@ -28,17 +131,32 @@
     public bool AzioneAperta { get; set; }
     [Parameter]
     public int IdAzione { get; set; }
+    [Parameter]
+    public int IdSegnalazione { get; set; }
 
+    private bool elaborazione;
+    private string? errorMessage;
+    private EditContext? context;
+    private bool editFlag;
     private Azione? azione;
+    private InputAzioneDto dto = new();
 
     [Parameter]
     public EventCallback OnChiudiAzione { get; set; }
+    [Parameter]
+    public EventCallback OnInviaAzione { get; set; }
+    [Parameter]
+    public EventCallback OnDataChange { get; set; }
 
+    private class IdDto
+    {
+        public int Id { get; set; }
+    }
+    //"init"
     protected override async Task OnParametersSetAsync()
     {
         if (IdAzione != 0)
         {
-
             try
             {
                 var userId = UserSession?.UserId;
@@ -54,12 +172,10 @@
 
                     Log.Debug("Modal azione, {@azione}", azione);
                 }
-
-
             }
             catch (HttpRequestException ex)
             {
-                Log.Debug("Caso request {@dto}", azione);
+                Log.Debug("Caso request {@dto},{@errore}", azione, ex);
             }
             catch (UnauthorizedAccessException)
             {
@@ -69,16 +185,175 @@
             {
                 Log.Debug("{message}", ex.Message);
             }
-
+            ContextInit();
+        }
+        else
+        {
+            azione = new();
+            ContextInit();
         }
 
     }
 
+    private void ContextInit()
+    {
+        if (azione is null) return;
+
+        context = new EditContext(azione);
+        context.OnFieldChanged += (_, _) =>
+            {
+                editFlag = context.IsModified();
+                StateHasChanged();
+            };
+    }
+
+    //chiamate e task
+    private async Task PostAzione()
+    {
+        try
+        {
+            var client = HttpClientFactory.CreateClient("api_test1");
+            var uId = UserSession?.UserId;
+            var uri = $"utenze/{uId}/azioni";
+            if (int.TryParse(uId, out var parsedId) && dto is not null)
+            {
+                elaborazione = true;
+                dto.IdSegnalazione = IdSegnalazione;
+                dto.IdStato = 1;
+                dto.DataAzione = DateOnly.FromDateTime(DateTime.Today);
+                Log.Debug("{@dto}", dto);
+                using var response = await AuthedHttp.SendAsync(
+                    client, HttpMethod.Post, uri, dto
+                );
+                // var idAzioneCreata = await response.Content.ReadFromJsonAsync<IdDto>();
+                var azioneRisposta = await response.Content.ReadFromJsonAsync<Azione>();
+                if (azioneRisposta is null) throw new Exception("Errore nella risposta api");
+
+                var responseBody = await response.Content.ReadAsStringAsync();
+                Log.Debug("HTTP Status: {StatusCode}", response.StatusCode);
+                Log.Debug("HTTP Response: {ResponseBody}", responseBody);
+                response.EnsureSuccessStatusCode();
+                if (!response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine($"Errore HTTP {(int)response.StatusCode}: {responseBody}");
+                    return;
+                }
+                await Inviata();
+                // azione = new();
+                IdAzione = azioneRisposta.Id;
+                azione = azioneRisposta;
+                elaborazione = false;
+                StateHasChanged();
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            Log.Debug("Caso request {@dto}", azione);
+            errorMessage = $"Errore durante l'invio dei dati: {ex.Message}";
+        }
+        catch (UnauthorizedAccessException)
+        {
+            Log.Debug("Caso unauthorized {@dto}", azione);
+            errorMessage = "Accesso alla risorsa non autorizzato";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Si è verificato un errore durante il caricamento dei dati.";
+            Log.Debug("{message}", ex.Message);
+        }
+    }
+
+    private async Task PutAzione(bool delete=false, bool conclude=false) //firma vuota, deve utilizzare 2yBind del form model per conoscere IdAzione
+    {
+        try
+        {
+            Log.Debug("Avviata chiamata put");
+            var client = HttpClientFactory.CreateClient("api_test1");
+            var uId = UserSession?.UserId;
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            if (int.TryParse(uId, out var parsedId) && azione is not null)
+            {
+                var uri = $"utenze/{uId}/azioni/{azione.Id}";
+                elaborazione = true;
+                azione.DataModifica = today;
+                if (!delete&&!conclude)
+                {
+                    if (!editFlag)
+                    {
+                        Log.Debug("Caso !editFlag");
+                        azione.IdStato = 2;
+                    }
+                    else
+                    {
+                        Log.Debug("Caso editFlag");
+                        azione.IdStato = 2;
+                        //implementare chiamata http extra con transaction 
+                        // per gestire assegnazione manutentori
+
+                    }
+
+                }
+                else
+                {
+                    Log.Debug("Caso elimina/chiudi pratica");
+                    (azione.IdStato, azione.DataChiusura )= (delete, conclude) switch
+                    {
+                        (true, false) => (3, today),
+                        (false, true) => (5, today),
+                        _ => (2, (DateOnly?)null)
+                    };
+                }
+                using var response = await AuthedHttp.SendAsync(
+                    client,
+                    HttpMethod.Put,
+                    uri,
+                    azione
+                );
+                response.EnsureSuccessStatusCode();
+                await Inviata();
+                elaborazione = false;
+                StateHasChanged();
+                if (delete || conclude)
+                {
+                    await Chiudi();
+                }
+            }
+            
+        }
+        catch (HttpRequestException ex)
+        {
+            Log.Debug("Caso request {@dto}", azione);
+            errorMessage = $"Errore durante l'invio dei dati: {ex.Message}";
+        }
+        catch (UnauthorizedAccessException)
+        {
+            Log.Debug("Caso unauthorized {@dto}", azione);
+            errorMessage = "Accesso alla risorsa non autorizzato";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Si è verificato un errore durante il caricamento dei dati.";
+            Log.Debug("{message}", ex.Message);
+        }
+        finally
+        {
+            elaborazione = false;
+            StateHasChanged();
+        }
+    }
+    
+    //eventi
     private async Task Chiudi()
     {
         if (OnChiudiAzione.HasDelegate)
         {
-           await OnChiudiAzione.InvokeAsync();
+            azione = null;
+            await OnChiudiAzione.InvokeAsync();
         }
+    }
+
+    private async Task Inviata()
+    {
+        if (OnDataChange.HasDelegate) await OnDataChange.InvokeAsync();
     }
 }

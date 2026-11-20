@@ -25,12 +25,15 @@ public class Azione
     [MaxLength(100)]
     public string NomeAzione { get; set; } =string.Empty;
 
-    //[Required]
+    [Required]
     [Column("data")]
     public DateOnly DataAzione { get; set; }
 
     [Column("data_chiusura")]
     public DateOnly? DataChiusura { get; set; }
+
+    [Column("data_modifica")]
+    public DateOnly? DataModifica { get; set; }
 
     [Required,
         Column("id_stato")]
@@ -38,6 +41,7 @@ public class Azione
 
     [ForeignKey(nameof(IdSegnalazione))]
     public Segnalazione Segnalazione { get; set; } = null!;
+
     [ForeignKey(nameof(IdStato))]
     public Stato Stato { get; set; }= null!;
     public ICollection<Utenza> Utenze { get; set; } = new HashSet<Utenza>();

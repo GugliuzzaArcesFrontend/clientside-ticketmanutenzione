@@ -1,5 +1,5 @@
 ﻿@* <h3>TabellaSegnalazioni</h3> *@
-<table class="custom-table mt-1 pt-1">
+<table class="custom-table mt-1 pt-1 overflow-x-auto">
     <thead>
         <tr>
             <th>#</th>
@@ -22,16 +22,16 @@
             @foreach (var segnalazione in Segnalazioni)
             {
                 <tr @onclick="()=>ApriDettagli(segnalazione.Id)">
-                    <td>@i</td>
+                    <td>#@i</td>
                     <td>@segnalazione.DataSegnalazione</td>
                     <td>@segnalazione.Descrizione</td>
                     <td>@segnalazione.Luogo</td>
                     <td>@segnalazione.Tipologia</td>
                     
                     <td @onclick:stopPropagation>
-                        <CustomButtonSm 
-                            
+                        <CustomButtonSm                             
                             Classes="@(segnalazione.AzioniAttive?"btn-success":"btn-warning")"
+                            
                             @onclick="@(e=>
                             {
                                 if (segnalazione.AzioniAttive) {VediAzione(segnalazione.IdAzioneAttiva??0);}
@@ -41,6 +41,7 @@
                             @(segnalazione.AzioniAttive ? "Vedi azione" : "Crea nuova")
                         </CustomButtonSm>
                     </td>
+
                     <td>
                         <CustomButtonSm @onclick="() => ApriDettagli(segnalazione.Id)">Dettagli</CustomButtonSm>
                     </td>
@@ -56,46 +57,51 @@
     SegnalazioneAperta="SegnalazioneAperta" 
     OnChiudiDettagli="ChiudiDettagli"/>
 
-<CreaAzioneModal 
+@* <CreaAzioneModal 
     IdSegnalazione="@idSegnalazione" 
     AzioneNuova="AzioneNuova" 
-    OnChiudiAzione="ChiudiAzione"/>
+    OnChiudiAzione="ChiudiAzione"/> *@
 
-<VediAzioneModal 
-    IdAzione="@(idAzione??0)" 
+<VediAzioneModal
+    IdSegnalazione="@idSegnalazione"
+    IdAzione="@idAzione" 
     AzioneAperta="AzioneAperta" 
-    OnChiudiAzione="ChiudiAzione"/>
+    OnChiudiAzione="ChiudiAzione"
+    OnDataChange="OnDataChange"
+    />
 
 @code {
     [Parameter]
     public SegnalazioniOperatoreDto[]? Segnalazioni { get; set; }
 
     private int idSegnalazione;
-    private int? idAzione;
+    private int idAzione;
 
-    public bool AzioneNuova { get; set; }
+    // public bool AzioneNuova { get; set; }
     public bool AzioneAperta { get; set; }
     public bool SegnalazioneAperta { get; set; }
+
+    [Parameter]
+    public EventCallback OnDataChange { get; set; }
 
 
 
     private void CreaAzione(int idSeg)
     {
         idSegnalazione = idSeg;
-        AzioneNuova = true;
-        Console.WriteLine("Dovrebbe aprire il modal CreaAzione");
+        // AzioneNuova = true;
+        AzioneAperta = true;
     }
     public void VediAzione(int idAz)
     {
         AzioneAperta = true;
         idAzione = idAz;
-        Console.WriteLine("Dovrebbe aprire il modal VediAzione");
     }
     private void ChiudiAzione()
     {
         idSegnalazione = 0;
         idAzione = 0;
-        AzioneNuova = false;
+        // AzioneNuova = false;
         AzioneAperta = false;
         StateHasChanged();
     }

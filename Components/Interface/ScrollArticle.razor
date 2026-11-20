@@ -1,4 +1,4 @@
-﻿<article class="scroll-point-start" @attributes="Attribs">
+﻿<article class="scroll-point-start overflow-x-hidden" @attributes="Attribs">
     @Head
     @Main
     @End
@@ -6,10 +6,13 @@
 @code {
     [Parameter]
     public RenderFragment? Head { get; set; }
+    
     [Parameter]
     public RenderFragment? Main { get; set; }
+    
     [Parameter]
     public RenderFragment? End { get; set; }
+
     [Parameter(CaptureUnmatchedValues = true)]
     public Dictionary<string,object>? Attribs { get; set; }
 }
